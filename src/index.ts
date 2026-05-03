@@ -5,7 +5,12 @@ import cors from 'cors';
 //custom modules
 import { logger } from './lib/logger.js';
 
-const port = 8888;
+//routes
+import { authRouter } from './routes/auth.routes.js';
+import { connectionDB } from './db/connection.js';
+
+const port = Number(process.env.PORT_API || 8888);
+//cors
 const isProduction = process.env.NODE_ENV === 'production';
 const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || [];
 const corsOptions: cors.CorsOptions = {
@@ -24,6 +29,8 @@ const corsOptions: cors.CorsOptions = {
 const app = express();
 //middleware
 app.use(cors(corsOptions));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 //route
 app.get('/', (req, res) => {
@@ -32,7 +39,18 @@ app.get('/', (req, res) => {
     time: new Date().toISOString(),
   });
 });
+// routes
+app.use('/api/v1', authRouter);
 
-app.listen(8888, () => {
-  logger.info('server run on port 8888');
-});
+//db
+const main = async () => {
+  try {
+    await connectionDB();
+    app.listen(8888, () => {
+      logger.info('server run on port 8888');
+    });
+  } catch (error) {
+    logger.error(error);
+  }
+};
+await main();
