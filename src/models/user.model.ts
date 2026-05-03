@@ -6,7 +6,8 @@ export interface IUser {
   email: string;
   password: string;
   role: 'tenant' | 'landlord';
-  favorites: string[];
+  favorites: Types.ObjectId[];
+  estates: Types.ObjectId[];
 }
 const UserSchema = new Schema<IUser>(
   {
@@ -24,7 +25,7 @@ const UserSchema = new Schema<IUser>(
     password: {
       type: String,
       required: [true, 'password is required'],
-      maxLength: [50, 'password 50 must be less than 50 characters'],
+      maxLength: [100, 'password 50 must be less than 50 characters'],
       minLength: [6, 'password must be at least 6 characters long'],
     },
     role: {
@@ -32,6 +33,8 @@ const UserSchema = new Schema<IUser>(
       enum: ['tenant', 'landlord'],
       default: 'tenant',
     },
+    favorites: [{ type: Schema.Types.ObjectId, ref: 'Estate' }],
+    estates: [{ type: Schema.Types.ObjectId, ref: 'Estate' }],
   },
   { timestamps: true },
 );
