@@ -33,3 +33,14 @@ export const CreateUserDto = z.object({
 
 // extract the inferred type
 export type CreateUserDtoType = z.infer<typeof CreateUserDto>;
+
+//login
+export const LoginUserDto = z.object({
+  email: z.email().max(40, 'email must be less than 40 characters'),
+  password: z
+    .string()
+    .trim()
+    .min(6, 'password must be at least 5 characters long')
+    .max(100, 'password must be less than 50 characters'),
+});
+export type LoginUserDtoTYpe = z.infer<typeof LoginUserDto>;

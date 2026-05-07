@@ -1,7 +1,7 @@
 //modules
 import express from 'express';
 import cors from 'cors';
-
+import cookieParser from 'cookie-parser';
 //custom modules
 import { logger } from './lib/logger.js';
 
@@ -31,7 +31,7 @@ const app = express();
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.use(cookieParser(process.env.KEY_COOKIE!));
 //route
 app.get('/', (req, res) => {
   res.json({
