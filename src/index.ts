@@ -40,14 +40,23 @@ app.get('/', (req, res) => {
   });
 });
 // routes
+// logger body
+app.use((req, res, next) => {
+  logger.info('----body-----');
+  logger.info(req.body);
+  logger.info('----body-----');
+
+  next();
+});
+
 app.use('/api/v1', authRouter);
 
 //db
 const main = async () => {
   try {
     await connectionDB();
-    app.listen(8888, () => {
-      logger.info('server run on port 8888');
+    app.listen(port, () => {
+      logger.info(`server run on port ${port}`);
     });
   } catch (error) {
     logger.error(error);

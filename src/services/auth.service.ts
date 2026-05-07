@@ -1,4 +1,8 @@
-import type { CreateUserDtoType, LoginUserDtoTYpe } from '../dto/user.dto.js';
+import {
+  LoginResponseUserDto,
+  type CreateUserDtoType,
+  type LoginUserDtoTYpe,
+} from '../dto/user.dto.js';
 import { checkPassword, toHashPassword } from '../lib/hash.js';
 import { generateRefreshToken, generateToken } from '../lib/jwt.js';
 import { logger } from '../lib/logger.js';
@@ -34,6 +38,12 @@ export class AuthService {
     //jsonwebtoken
     const accessToken = generateToken(userRegister);
     const refreshToken = generateRefreshToken(userRegister);
-    return { user: userRegister, refreshToken, accessToken };
+    const dto = LoginResponseUserDto.safeParse({
+      ...userRegister,
+      _id: userRegister._id.toString(),
+    });
+    
+    if (!dto.success) throw new Error('error user');
+    return { user: dto.data, refreshToken, accessToken };
   };
 }

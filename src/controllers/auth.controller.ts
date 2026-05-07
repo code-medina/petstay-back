@@ -46,6 +46,7 @@ export class AuthController {
 
   loginUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      logger.info(req.body);
       const dto = LoginUserDto.safeParse(req.body);
       if (!dto.success)
         throw new Error(dto.error.issues.map((m) => m.message).join(' - '));
@@ -70,14 +71,11 @@ export class AuthController {
 
       res.cookie('refresh_token', refreshToken, cookieOptionRefresh);
 
-      const { password, favorites, estates, ...userSafe } = user;
-      logger.info({ password, favorites, estates });
-
       //todo  set cookie
       return res.json({
         ok: true,
         message: 'successfull login',
-        user: userSafe,
+        user: user,
       });
     } catch (error) {
       next(error);
