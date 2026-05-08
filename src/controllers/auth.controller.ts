@@ -7,6 +7,7 @@ import {
   type CreateUserDtoType,
   type RegisterUserDtoType,
 } from '../dto/user.dto.js';
+import ms from 'ms';
 
 export class AuthController {
   private service: AuthService;
@@ -14,6 +15,23 @@ export class AuthController {
     this.service = authService;
   }
 
+  private getCookieOptions = (type: 'access' | 'refresh'): CookieOptions => {
+    const accessExpires =
+      type === 'access'
+        ? process.env.JWT_ACCESS_EXPIRES
+        : process.env.JWT_REFRESH_EXPIRES;
+    if (!accessExpires) {
+      throw new Error('ENV EXPIRES is not defined');
+    }
+
+    const cookieOption: CookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', //true for HTTPS,
+      maxAge: ms(accessExpires as ms.StringValue),
+      signed: true,
+    };
+    return cookieOption;
+  };
   private addRole = (
     url: string,
     user: RegisterUserDtoType,
@@ -55,20 +73,9 @@ export class AuthController {
         dto.data,
       );
 
-      const cookieOptionAccess: CookieOptions = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', //true for HTTPS,
-        maxAge: 3600000, //1 hour,
-        signed: true,
-      };
-      const cookieOptionRefresh: CookieOptions = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production', //true for HTTPS,
-        maxAge: 86400000, //1 day,
-        signed: true,
-      };
+      const cookieOptionAccess = this.getCookieOptions('access');
+      const cookieOptionRefresh = this.getCookieOptions('refresh');
       res.cookie('access_token', accessToken, cookieOptionAccess);
-
       res.cookie('refresh_token', refreshToken, cookieOptionRefresh);
 
       //todo  set cookie
