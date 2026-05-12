@@ -1,7 +1,7 @@
 //modules
 import express from 'express';
 import cors from 'cors';
-
+import cookieParser from 'cookie-parser';
 //custom modules
 import { logger } from './lib/logger.js';
 
@@ -31,7 +31,7 @@ const app = express();
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.use(cookieParser(process.env.KEY_COOKIE!));
 //route
 app.get('/', (req, res) => {
   res.json({
@@ -40,14 +40,23 @@ app.get('/', (req, res) => {
   });
 });
 // routes
+// logger body
+app.use((req, res, next) => {
+  logger.info('----body-----');
+  logger.info(req.body);
+  logger.info('----body-----');
+
+  next();
+});
+
 app.use('/api/v1', authRouter);
 
 //db
 const main = async () => {
   try {
     await connectionDB();
-    app.listen(8888, () => {
-      logger.info('server run on port 8888');
+    app.listen(port, () => {
+      logger.info(`server run on port ${port}`);
     });
   } catch (error) {
     logger.error(error);

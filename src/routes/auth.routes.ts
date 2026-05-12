@@ -10,5 +10,8 @@ const repo = new AuthRepository();
 const service = new AuthService(repo);
 const authController = new AuthController(service);
 export const authRouter: Router = Router();
+// register
 authRouter.post('/auth/register/tenant', authController.registerUser);
 authRouter.post('/auth/register/landlord', authController.registerUser);
+// login
+authRouter.post("/auth/login",authController.loginUser)

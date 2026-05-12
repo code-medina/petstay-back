@@ -1,0 +1,12 @@
+@baseUrl = http://localhost:8888/api/v1
+@email = mock@gmail.com
+@password = passwordReal
+
+### LOGIN
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "{{email}}",
+  "password": "{{password}}"
+}
