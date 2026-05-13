@@ -103,4 +103,13 @@ export class AuthService {
       accessToken: access,
     };
   };
+
+  logoutUser = async (refresh: string) => {
+    try {
+      return Session.deleteOne({ refreshHash: refresh });
+    } catch (error) {
+      logger.info('Error in delete session in db');
+      logger.info(error);
+    }
+  };
 }
