@@ -4,9 +4,10 @@ import { logger } from '../lib/logger.js';
 import type { AuthService } from '../services/auth.service.js';
 import {
   LoginUserDto,
+  ParamRoleDto,
   RegisterUserDto,
-  type CreateUserDtoType,
-  type RegisterUserDtoType,
+  type ParamRoleDtoType,
+
 } from '../dto/user.dto.js';
 import { AppError } from '../errors/app.error.js';
 import { getZodError } from '../lib/zod.js';
@@ -38,18 +39,18 @@ export class AuthController {
     };
     return cookieOption;
   };
-  private addRole = (
-    url: string,
-    user: RegisterUserDtoType,
-  ): CreateUserDtoType => {
-    let role: 'tenant' | 'landlord' = 'tenant';
+  // private addRole = (
+  //   url: string,
+  //   user: RegisterUserDtoType,
+  // ): CreateUserDtoType => {
+  //   let role: 'tenant' | 'landlord' = 'tenant';
 
-    logger.info(url.includes('landlord'));
-    if (url.includes('landlord')) {
-      role = 'landlord';
-    }
-    return { ...user, role };
-  };
+  //   logger.info(url.includes('landlord'));
+  //   if (url.includes('landlord')) {
+  //     role = 'landlord';
+  //   }
+  //   return { ...user, role };
+  // };
 
   registerUser = async (req: Request, res: Response, next: NextFunction) => {
     const dto = RegisterUserDto.safeParse(req.body);
@@ -59,7 +60,15 @@ export class AuthController {
         const message = getZodError(dto.error);
         throw new AppError(` Bad Request Register :${message}`, 400);
       }
-      const user = this.addRole(req.originalUrl, dto.data);
+        const roleParam=ParamRoleDto.safeDecode(req.params as ParamRoleDtoType); 
+        let role:"tenant"|"landlord"="tenant";
+        if(roleParam.success) role=roleParam.data.role;
+
+        
+
+      //const user = this.addRole(req.originalUrl, dto.data);
+      const user ={...dto.data,role};
+
       const data = await this.service.registerUser(user);
       return res
         .status(201)
