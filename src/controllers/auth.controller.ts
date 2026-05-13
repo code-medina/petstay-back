@@ -1,3 +1,4 @@
+import ms from 'ms';
 import type { Request, Response, NextFunction, CookieOptions } from 'express';
 import { logger } from '../lib/logger.js';
 import type { AuthService } from '../services/auth.service.js';
@@ -7,7 +8,8 @@ import {
   type CreateUserDtoType,
   type RegisterUserDtoType,
 } from '../dto/user.dto.js';
-import ms from 'ms';
+import { AppError } from '../errors/app.error.js';
+import { getZodError } from '../lib/zod.js';
 
 export class AuthController {
   private service: AuthService;
@@ -21,7 +23,10 @@ export class AuthController {
         ? process.env.JWT_ACCESS_EXPIRES
         : process.env.JWT_REFRESH_EXPIRES;
     if (!accessExpires) {
-      throw new Error('ENV EXPIRES is not defined');
+      throw new AppError(
+        `JWT_${type.toUpperCase()}_EXPIRES is not defined`,
+        500,
+      );
     }
 
     const cookieOption: CookieOptions = {
@@ -29,6 +34,7 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production', //true for HTTPS,
       maxAge: ms(accessExpires as ms.StringValue),
       signed: true,
+      sameSite: 'lax',
     };
     return cookieOption;
   };
@@ -44,19 +50,20 @@ export class AuthController {
     }
     return { ...user, role };
   };
+
   registerUser = async (req: Request, res: Response, next: NextFunction) => {
     const dto = RegisterUserDto.safeParse(req.body);
 
     try {
-      if (dto.success) {
-        const user = this.addRole(req.originalUrl, dto.data);
-        const data = await this.service.registerUser(user);
-        return res
-          .status(201)
-          .json({ ok: true, message: 'successfull register', data });
-      } else {
-        throw new Error(dto.error.issues.map((m) => m.message).join('-'));
+      if (!dto.success) {
+        const message = getZodError(dto.error);
+        throw new AppError(` Bad Request Register :${message}`, 400);
       }
+      const user = this.addRole(req.originalUrl, dto.data);
+      const data = await this.service.registerUser(user);
+      return res
+        .status(201)
+        .json({ ok: true, message: 'successfull register', data });
     } catch (error) {
       next(error);
     }
@@ -66,8 +73,10 @@ export class AuthController {
     try {
       logger.info(req.body);
       const dto = LoginUserDto.safeParse(req.body);
-      if (!dto.success)
-        throw new Error(dto.error.issues.map((m) => m.message).join(' - '));
+      if (!dto.success) {
+        const message = getZodError(dto.error);
+        throw new AppError(` Bad Request Login :${message}`, 400);
+      }
 
       const { user, accessToken, refreshToken } = await this.service.loginUser(
         dto.data,
