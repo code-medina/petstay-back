@@ -11,6 +11,7 @@ import type { ISession } from '../models/session.model.js';
 import { Session } from '../models/session.model.js';
 import type { IUser } from '../models/user.model.js';
 import type { IAuthRepository } from '../repositiries/auth.repository.js';
+import { AppError } from '../errors/app.error.js';
 
 // to generateSession
 type SessionWithoutId = Omit<ISession, '_id'>;
@@ -22,18 +23,19 @@ export class AuthService {
   }
   registerUser = async (user: CreateUserDtoType) => {
     const { password, ...rest } = user;
-    const existUser = await this.repo.findByEmail({
-      email: rest.email,
-      password,
-    });
-    if (existUser) throw new Error('User already registered');
-    const hashPassword = await toHashPassword(password);
+    const existUser = await this.repo.findByEmail(rest.email);
+    if (existUser) throw new AppError('User already registered', 400);
+    try {
+      const hashPassword = await toHashPassword(password);
+      const data = { ...rest, password: hashPassword };
 
-    const data = { ...rest, password: hashPassword };
-    logger.info('data :');
-    logger.info(data);
+      return this.repo.save(data);
+    } catch (error) {
+      logger.error(error);
+      if (error instanceof AppError) throw error;
 
-    return this.repo.save(data);
+      throw new AppError('Error Register user', 500);
+    }
   };
 
   //session
@@ -57,28 +59,48 @@ export class AuthService {
     return { access, refresh, session };
   };
   private saveSession = async (session: SessionWithoutId) => {
-    return await Session.create(session);
+    return Session.create(session);
   };
+
   loginUser = async (user: LoginUserDtoTYpe) => {
-    const userRegister = await this.repo.findByEmail(user);
-    if (!userRegister) throw new Error(' User Not Found ');
+    const userRegister = await this.repo.findByEmail(user.email);
+
+    if (!userRegister) {
+      throw new AppError('User not found', 404);
+    }
 
     const isValid = await checkPassword(user.password, userRegister.password);
-    if (!isValid) throw new Error('Invalid credential');
 
-    //jsonwebtoken
-    /*   const accessToken = generateToken(userRegister);
-    const refreshToken = generateRefreshToken(userRegister); */
+    if (!isValid) {
+      throw new AppError('Unauthorized', 401);
+    }
+
     const { access, refresh, session } =
       await this.generateSession(userRegister);
+
+    try {
+      await this.saveSession(session);
+    } catch (error) {
+      logger.error(error);
+
+      throw new AppError('Failed to save session', 500);
+    }
+
     const dto = LoginResponseUserDto.safeParse({
       ...userRegister,
       _id: userRegister._id.toString(),
     });
-    const save = await this.saveSession(session);
-    logger.info(save);
 
-    if (!dto.success) throw new Error('error user');
-    return { user: dto.data, refreshToken: refresh, accessToken: access };
+    if (!dto.success) {
+      logger.error(dto.error);
+
+      throw new AppError('Invalid user data', 500);
+    }
+
+    return {
+      user: dto.data,
+      refreshToken: refresh,
+      accessToken: access,
+    };
   };
 }
