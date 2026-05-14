@@ -3,6 +3,7 @@ import { Schema, model, Types } from 'mongoose';
 export interface ISession {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
+    jti: string;
   expiresAt: Date;
   refreshHash: string;
 }
@@ -13,7 +14,13 @@ const SessionSchema = new Schema<ISession>(
     refreshHash: {
       type: String,
       required: [true, 'refresh is required'],
-      unique: [true, 'email already exists'],
+      unique: [true, 'refresh already exists'],
+    },
+      jti: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true,
     },
   },
   { timestamps: true },

@@ -11,11 +11,24 @@ import {
 import { AppError } from '../errors/app.error.js';
 import { getZodError } from '../lib/zod.js';
 
+import { verifyRefresh } from '../lib/jwt.js';
+import type { JwtPayload } from 'jsonwebtoken';
+
 export class AuthController {
   private service: AuthService;
   constructor(authService: AuthService) {
     this.service = authService;
   }
+  private addCookiesToResponse = (
+    res: Response,
+    access: string,
+    refresh: string,
+  ) => {
+    const cookieOptionAccess = this.getCookieOptions('access');
+    const cookieOptionRefresh = this.getCookieOptions('refresh'); // save in db
+    res.cookie('access_token', access, cookieOptionAccess);
+    res.cookie('refresh_token', refresh, cookieOptionRefresh);
+  };
 
   private getCookieOptions = (type: 'access' | 'refresh'): CookieOptions => {
     const accessExpires =
@@ -38,18 +51,6 @@ export class AuthController {
     };
     return cookieOption;
   };
-  // private addRole = (
-  //   url: string,
-  //   user: RegisterUserDtoType,
-  // ): CreateUserDtoType => {
-  //   let role: 'tenant' | 'landlord' = 'tenant';
-
-  //   logger.info(url.includes('landlord'));
-  //   if (url.includes('landlord')) {
-  //     role = 'landlord';
-  //   }
-  //   return { ...user, role };
-  // };
 
   registerUser = async (req: Request, res: Response, next: NextFunction) => {
     const dto = RegisterUserDto.safeParse(req.body);
@@ -88,12 +89,15 @@ export class AuthController {
         dto.data,
       );
 
-      const cookieOptionAccess = this.getCookieOptions('access');
+      /*     const cookieOptionAccess = this.getCookieOptions('access');
       const cookieOptionRefresh = this.getCookieOptions('refresh'); // save in db
       res.cookie('access_token', accessToken, cookieOptionAccess);
       res.cookie('refresh_token', refreshToken, cookieOptionRefresh);
+ */
 
       //todo  set cookie
+      this.addCookiesToResponse(res, accessToken, refreshToken);
+
       return res.json({
         ok: true,
         message: 'successfull login',
@@ -119,6 +123,35 @@ export class AuthController {
       logger.info(req.signedCookies);
       return res.status(200).json({ ok: true, message: 'Successful logout' });
     } catch (error) {
+      next(error);
+    }
+  };
+  refreshUser = async (req: Request, res: Response, next: NextFunction) => {
+    logger.info('refresh endpoint');
+    const refreshToken = req.signedCookies['refresh_token'];
+    let payload: JwtPayload | string;
+    try {
+      payload = verifyRefresh(refreshToken);
+    } catch (error) {
+      logger.info(error);
+      throw new AppError('invalid or expired Refresh');
+    }
+
+    if (typeof payload == 'string' || (!payload.sub && !payload.jti))
+      throw new AppError('invalid refresh');
+    try {
+      const { refresh, access } = await this.service.refreshToken(
+        payload.sub!,
+        payload.jti!,
+        refreshToken,
+      );
+      // set cookies
+      this.addCookiesToResponse(res, access, refresh);
+      return res
+        .status(200)
+        .json({ ok: true, message: 'successful refresh token' });
+    } catch (error) {
+      logger.info(error);
       next(error);
     }
   };
