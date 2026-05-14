@@ -1,20 +1,31 @@
-import jwt from 'jsonwebtoken';
+import crypto from "crypto";
+import jwt, { type JwtPayload } from 'jsonwebtoken';
 import type { StringValue } from 'ms';
 
-import type { IUser } from '../models/user.model.js';
 
-export const generateToken = (user: IUser) => {
-  const secret = process.env.SECRET_ACCESS_TOKEN!;
-  const expiresIn=process.env.JWT_ACCESS_EXPIRES! as StringValue;
 
-  const options: jwt.SignOptions = { expiresIn };
-  return jwt.sign({ _id: user._id }, secret, options);
+const secretAccessToken=process.env.SECRET_ACCESS_TOKEN!;
+const expiresInAccessToken=process.env.JWT_ACCESS_EXPIRES! as StringValue;
+const secretRefreshToken= process.env.SECRET_REFRESH_TOKEN!;
+  const expiresInRefreshToken=process.env.JWT_REFRESH_EXPIRES! as StringValue;
+
+
+export const generateToken = (userId:string) => {
+  
+  const options: jwt.SignOptions = {expiresIn: expiresInAccessToken };
+  const jti = crypto.randomUUID();
+  return jwt.sign({ sub: userId,jti }, secretAccessToken, options);
 };
-export const generateRefreshToken = (user: IUser) => {
-  const expiresIn=process.env.JWT_REFRESH_EXPIRES! as StringValue;
-
-  const secret = process.env.SECRET_REFRESH_TOKEN!;
-
-  const options: jwt.SignOptions = { expiresIn };
-  return jwt.sign({ _id: user._id }, secret, options);
+export const generateRefreshToken = (userId:string) => {
+  const options: jwt.SignOptions = { expiresIn:expiresInRefreshToken };
+   const jti = crypto.randomUUID();
+  return {refresh:jwt.sign({ sub: userId,jti }, secretRefreshToken, options),jti};
 };
+export const verifyRefresh=(refresh:string)=>{
+
+  return jwt.verify(refresh,secretRefreshToken);
+}
+
+export const getPayload=(refresh:string)=>{
+  return jwt.decode(refresh) as  JwtPayload;
+}

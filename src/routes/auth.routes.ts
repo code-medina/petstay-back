@@ -13,6 +13,8 @@ export const authRouter: Router = Router();
 // register
 authRouter.post('/auth/register/:role', authController.registerUser);
 // login
-authRouter.post("/auth/login",authController.loginUser)
+authRouter.post("/auth/login",authController.loginUser);
 //logout
 authRouter.get("/auth/logout",authController.logoutUser);
+//refresh
+authRouter.get("/auth/refresh",authController.refreshUser);

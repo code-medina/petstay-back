@@ -8,7 +8,8 @@ export const connectionDB = async () => {
   try {
     connection = await mongoose.connect(uri);
     
-    //await mongoose.connection.db?.dropCollection('users');
+    // await mongoose.connection.db?.dropCollection('users');
+    // await mongoose.connection.db?.dropCollection("session")
     logger.info('successfull connection');
   } catch (error) {
     logger.error(error);
