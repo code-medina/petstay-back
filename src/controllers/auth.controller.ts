@@ -7,7 +7,6 @@ import {
   ParamRoleDto,
   RegisterUserDto,
   type ParamRoleDtoType,
-
 } from '../dto/user.dto.js';
 import { AppError } from '../errors/app.error.js';
 import { getZodError } from '../lib/zod.js';
@@ -60,14 +59,12 @@ export class AuthController {
         const message = getZodError(dto.error);
         throw new AppError(` Bad Request Register :${message}`, 400);
       }
-        const roleParam=ParamRoleDto.safeDecode(req.params as ParamRoleDtoType); 
-        let role:"tenant"|"landlord"="tenant";
-        if(roleParam.success) role=roleParam.data.role;
-
-        
+      const roleParam = ParamRoleDto.safeDecode(req.params as ParamRoleDtoType);
+      let role: 'tenant' | 'landlord' = 'tenant';
+      if (roleParam.success) role = roleParam.data.role;
 
       //const user = this.addRole(req.originalUrl, dto.data);
-      const user ={...dto.data,role};
+      const user = { ...dto.data, role };
 
       const data = await this.service.registerUser(user);
       return res
@@ -92,7 +89,7 @@ export class AuthController {
       );
 
       const cookieOptionAccess = this.getCookieOptions('access');
-      const cookieOptionRefresh = this.getCookieOptions('refresh');
+      const cookieOptionRefresh = this.getCookieOptions('refresh'); // save in db
       res.cookie('access_token', accessToken, cookieOptionAccess);
       res.cookie('refresh_token', refreshToken, cookieOptionRefresh);
 
@@ -102,6 +99,25 @@ export class AuthController {
         message: 'successfull login',
         user: user,
       });
+    } catch (error) {
+      next(error);
+    }
+  };
+  logoutUser = async (req: Request, res: Response, next: NextFunction) => {
+    logger.info('logout');
+    const refresh = req.signedCookies['refresh_token'];
+
+    try {
+      if (refresh && refresh.trim().length > 0) {
+        await this.service.logoutUser(refresh);
+      }
+      //same option to clear
+      const { maxAge, ...options } = this.getCookieOptions('refresh');
+      logger.info({ message: 'delete maxAge', maxAge });
+      res.clearCookie('refresh_token', options);
+      res.clearCookie('access_token', options);
+      logger.info(req.signedCookies);
+      return res.status(200).json({ ok: true, message: 'Successful logout' });
     } catch (error) {
       next(error);
     }
