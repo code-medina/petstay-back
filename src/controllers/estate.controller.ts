@@ -15,7 +15,7 @@ export class EstateController {
         const dtos = CreateEstateDto.safeParse(req.body);
         if(!dtos.success) throw new AppError("Invalid input for estate creation",400);
 
-        const newEstate=this.service.createEstate(dtos.data);
+        const newEstate= await this.service.createEstate(dtos.data);
         return res.status(201).json({ok:true,message:"successful creation",data:newEstate})
     } catch (error) {
         next(error)
