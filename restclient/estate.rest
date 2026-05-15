@@ -1,0 +1,65 @@
+## BASE
+@baseUrl = http://localhost:8888/api/v1
+
+### CREATE ESTATE
+POST {{baseUrl}}/estate
+Content-Type: application/json
+
+{
+  "name": "mock estate",
+  "address": {
+    "street": "mock street",
+    "zone": "mock zone",
+    "city": "mock city",
+    "state": "mock state",
+    "postalCode": "mock postalCode",
+    "country": "mock country"
+  },
+  "price": 2345,
+  "animalAllowed": [
+    "dog",
+    "cat"
+  ],
+  "maximumAnimalAllowed": 2,
+  "maximumPerson": 4,
+  "rooms": 4,
+  "bathrooms": 2,
+  "hasPatio": true,
+  "patioDimensions": {
+    "length": 200,
+    "width": 200
+  },
+  "description": "mock description",
+  "rentalType": "annual"
+}
+### FAILED CREATE ESTATE
+POST {{baseUrl}}/estate
+Content-Type: application/json
+
+{
+  "name": "m",
+  "address": {
+    "street": "mock street",
+    "zone": "mock zone",
+    "city": "mock city",
+    "state": "mock state",
+    "postalCode": "mock postalCode",
+    "country": "mock country"
+  },
+  "price": 2345,
+  "animalAllowed": [
+    "dog",
+    "cat"
+  ],
+  "maximumAnimalAllowed": 2,
+  "maximumPerson": 4,
+  "rooms": 4,
+  "bathrooms": 2,
+  "hasPatio": true,
+  "patioDimensions": {
+    "length": 200,
+    "width": 200
+  },
+  "description": "mock description",
+  "rentalType": "annual"
+}
