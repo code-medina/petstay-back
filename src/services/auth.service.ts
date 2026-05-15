@@ -3,8 +3,13 @@ import {
   LoginResponseUserDto,
   type CreateUserDtoType,
   type LoginUserDtoTYpe,
-} from '../dto/user.dto.js';
-import { checkPassword, checkRefresh, toHashPassword, toHashRefresh } from '../lib/hash.js';
+} from '../dtos/user.dto.js';
+import {
+  checkPassword,
+  checkRefresh,
+  toHashPassword,
+  toHashRefresh,
+} from '../lib/hash.js';
 import { generateRefreshToken, generateToken, getPayload } from '../lib/jwt.js';
 import { logger } from '../lib/logger.js';
 import type { ISession } from '../models/session.model.js';
@@ -39,22 +44,22 @@ export class AuthService {
     }
   };
 
-  //session obj 
+  //session obj
   private generateSession = async (
-    userId:string
+    userId: string,
   ): Promise<{
     access: string;
     refresh: string;
     session: SessionWithoutId;
   }> => {
     const access = generateToken(userId);
-    const {refresh,jti} = generateRefreshToken(userId);
+    const { refresh, jti } = generateRefreshToken(userId);
 
     //session with hash  in db
     const hash = await toHashRefresh(refresh);
     const objectId = new mongoose.Types.ObjectId(userId);
     const session: SessionWithoutId = {
-      userId:objectId,
+      userId: objectId,
       jti,
       expiresAt: new Date(
         Date.now() + ms(process.env.JWT_REFRESH_EXPIRES as ms.StringValue),
@@ -81,8 +86,9 @@ export class AuthService {
       throw new AppError('Unauthorized', 401);
     }
 
-    const { access, refresh, session } =
-      await this.generateSession(userRegister._id.toString());
+    const { access, refresh, session } = await this.generateSession(
+      userRegister._id.toString(),
+    );
 
     try {
       await this.saveSession(session);
@@ -121,24 +127,22 @@ export class AuthService {
       logger.info(error);
     }
   };
-  refreshToken = async (userId: string,jti:string,refreshToken:string) => {
+  refreshToken = async (userId: string, jti: string, refreshToken: string) => {
     try {
-      const sessionDB=await Session.findOneAndDelete({userId:userId,jti});
+      const sessionDB = await Session.findOneAndDelete({ userId: userId, jti });
       //const session=await Session.findOne({userId:userId,jti});
-      if(!sessionDB) throw new AppError("Refresh not found",400);
-      //hash 
-      const isValid=await checkRefresh(refreshToken,sessionDB.refreshHash);
-      if(!isValid) throw new AppError("Unauthorized",400);
-    
-     const {refresh,access,session}=await this.generateSession(userId);
-     await this.saveSession(session);
-      return {refresh,access}
-      
+      if (!sessionDB) throw new AppError('Refresh not found', 400);
+      //hash
+      const isValid = await checkRefresh(refreshToken, sessionDB.refreshHash);
+      if (!isValid) throw new AppError('Unauthorized', 400);
+
+      const { refresh, access, session } = await this.generateSession(userId);
+      await this.saveSession(session);
+      return { refresh, access };
     } catch (error) {
       logger.info(error);
-    if(error instanceof AppError) throw error;
-     throw new AppError("Failed refresh token",500);
-      
+      if (error instanceof AppError) throw error;
+      throw new AppError('Failed refresh token', 500);
     }
   };
 }

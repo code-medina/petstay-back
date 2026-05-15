@@ -7,7 +7,7 @@ import {
   ParamRoleDto,
   RegisterUserDto,
   type ParamRoleDtoType,
-} from '../dto/user.dto.js';
+} from '../dtos/user.dto.js';
 import { AppError } from '../errors/app.error.js';
 import { getZodError } from '../lib/zod.js';
 

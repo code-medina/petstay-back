@@ -12,7 +12,7 @@ export interface IEstate {
     country: string;
   };
   price: number;
-  animalAllowed?: string;
+  animalAllowed?: string[];
   maximumAnimalAllowed: number;
   maximumPerson: number;
   rooms: number;
