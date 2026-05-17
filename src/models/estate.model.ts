@@ -8,7 +8,7 @@ export interface IEstate {
     zone: string; // localidad zona o barrio
     city: string;
     state: string; // estado o provincia
-    postalCode: string;
+    postalCode?: string;
     country: string;
   };
   price: number;
@@ -22,7 +22,7 @@ export interface IEstate {
     length: number;
     width: number;
   };
-  description: string;
+  description?: string;
   rentalType: 'monthly' | 'daily' | 'annual' | 'holiday';
 }
 const EstateSchema = new Schema<IEstate>(

@@ -15,7 +15,7 @@ import { logger } from '../lib/logger.js';
 import type { ISession } from '../models/session.model.js';
 import { Session } from '../models/session.model.js';
 
-import type { IAuthRepository } from '../repositiries/auth.repository.js';
+import type { IAuthRepository } from '../repositories/auth.repository.js';
 import { AppError } from '../errors/app.error.js';
 import mongoose from 'mongoose';
 

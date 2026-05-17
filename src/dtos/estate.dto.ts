@@ -1,96 +1,121 @@
 import * as z from 'zod';
+import mongoose from 'mongoose';
 
-export const CreateEstateDto = z
-  .object({
-    name: z
-      .string()
-      .trim()
-      .min(3, 'The name must be at least 3 characters long.')
-      .max(30, 'Name must be a maximum of 30 characters'),
+/* ------------------------------------------------ */
+/* Helpers */
+/* ------------------------------------------------ */
 
-    address: z.object({
-      street: z
-        .string()
-        .trim()
-        .min(3, 'The street must be at least 3 characters long.')
-        .max(30, 'The street must be a maximum of 30 characters'),
+const textField = (field: string) =>
+  z
+    .string()
+    .trim()
+    .min(3, `The ${field} must be at least 3 characters long.`)
+    .max(30, `The ${field} must be a maximum of 30 characters`);
 
-      zone: z
-        .string()
-        .trim()
-        .min(3, 'The zone must be at least 3 characters long.')
-        .max(30, 'The zone must be a maximum of 30 characters'),
+const MongoIdSchema = z.string().refine(
+  mongoose.isValidObjectId,
+  {
+    message: 'Invalid MongoDB ID',
+  }
+);
 
-      city: z
-        .string()
-        .trim()
-        .min(3, 'The city must be at least 3 characters long.')
-        .max(30, 'The city must be a maximum of 30 characters'),
+/* ------------------------------------------------ */
+/* Nested Schemas */
+/* ------------------------------------------------ */
 
-      state: z
-        .string()
-        .trim()
-        .min(3, 'The state must be at least 3 characters long.')
-        .max(30, 'The state must be a maximum of 30 characters'),
+const PatioDimensionsSchema = z.object({
+  length: z.coerce
+    .number()
+    .positive('The patio length must be positive'),
 
-      postalCode: z.string().optional(),
+  width: z.coerce
+    .number()
+    .positive('The patio width must be positive'),
+});
 
-      country: z
-        .string()
-        .trim()
-        .min(3, 'The country must be at least 3 characters long.')
-        .max(30, 'The country must be a maximum of 30 characters'),
-    }),
+const AddressSchema = z.object({
+  street: textField('street'),
 
-    price: z.number().positive('The price must be positive'),
+  zone: textField('zone'),
 
-    animalAllowed: z.array(z.string()).optional(),
+  city: textField('city'),
 
-    maximumAnimalAllowed: z
-      .number()
-      .int()
-      .positive('The maximum animal allowed number must be positive'),
+  state: textField('state'),
 
-    maximumPerson: z
-      .number()
-      .int()
-      .positive('The maximum person number must be positive'),
+  postalCode: z.string().trim().min(1).optional(),
 
-    rooms: z.number().int().positive('The rooms number must be positive'),
+  country: textField('country'),
+});
 
-    bathrooms: z
-      .number()
-      .int()
-      .positive('The bathrooms number must be positive'),
+/* ------------------------------------------------ */
+/* Base Schema */
+/* ------------------------------------------------ */
 
-    hasPatio: z.boolean(),
+const EstateBaseSchema = z.object({
+  name: textField('name'),
 
-    patioDimensions: z
-      .object({
-        length: z
-          .number()
-          .positive('The patio length must be positive'),
+  address: AddressSchema,
 
-        width: z
-          .number()
-          .positive('The patio width must be positive'),
-      })
-      .optional(),
+  price: z.coerce
+    .number()
+    .positive('The price must be positive'),
 
-    description: z
-      .string()
-      .trim()
-      .max(500, 'The description must be a maximum of 500 characters')
-      .optional(),
+  animalAllowed: z
+    .array(
+      z.string().trim().min(1)
+    )
+    .optional(),
 
-    rentalType: z.enum(['monthly', 'daily', 'annual', 'holiday']),
-  })
-  .superRefine((data, ctx) => {
+  maximumAnimalAllowed: z.coerce
+    .number()
+    .int()
+    .positive('The maximum animal allowed number must be positive'),
+
+  maximumPerson: z.coerce
+    .number()
+    .int()
+    .positive('The maximum person number must be positive'),
+
+  rooms: z.coerce
+    .number()
+    .int()
+    .positive('The rooms number must be positive'),
+
+  bathrooms: z.coerce
+    .number()
+    .int()
+    .positive('The bathrooms number must be positive'),
+
+  hasPatio: z.boolean(),
+
+  patioDimensions: PatioDimensionsSchema.optional(),
+
+  description: z
+    .string()
+    .trim()
+    .max(500, 'The description must be a maximum of 500 characters')
+    .optional(),
+
+  rentalType: z.enum([
+    'monthly',
+    'daily',
+    'annual',
+    'holiday',
+  ]),
+});
+
+/* ------------------------------------------------ */
+/* Create DTO */
+/* ------------------------------------------------ */
+
+export const CreateEstateDto = EstateBaseSchema.superRefine(
+  (data, ctx) => {
     if (data.hasPatio && !data.patioDimensions) {
       ctx.addIssue({
         code: "custom",
         path: ['patioDimensions'],
-        message: 'Patio dimensions are required when hasPatio is true',
+        message:
+          'Patio dimensions are required when hasPatio is true',
       });
     }
 
@@ -98,8 +123,55 @@ export const CreateEstateDto = z
       ctx.addIssue({
         code: "custom",
         path: ['patioDimensions'],
-        message: 'Patio dimensions should not exist when hasPatio is false',
+        message:
+          'Patio dimensions should not exist when hasPatio is false',
+      });
+    }
+  }
+);
+
+export type CreateEstateDtoType =
+  z.infer<typeof CreateEstateDto>;
+
+/* ------------------------------------------------ */
+/* Edit DTO */
+/* ------------------------------------------------ */
+
+export const EditEstateDto = EstateBaseSchema
+  .partial()
+  .extend({
+    _id: MongoIdSchema,
+  })
+  .superRefine((data, ctx) => {
+    /*
+      Solo validamos si hasPatio existe
+      para soportar updates parciales
+    */
+
+    if (
+      data.hasPatio === true &&
+      !data.patioDimensions
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ['patioDimensions'],
+        message:
+          'Patio dimensions are required when hasPatio is true',
+      });
+    }
+
+    if (
+      data.hasPatio === false &&
+      data.patioDimensions
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['patioDimensions'],
+        message:
+          'Patio dimensions should not exist when hasPatio is false',
       });
     }
   });
-export type CreateEstateDtoType=z.infer<typeof CreateEstateDto>;
+
+export type EditEstateDtoType =
+  z.infer<typeof EditEstateDto>;
