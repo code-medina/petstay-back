@@ -120,6 +120,7 @@ export class AuthController {
       logger.info({ message: 'delete maxAge', maxAge });
       res.clearCookie('refresh_token', options);
       res.clearCookie('access_token', options);
+      res.locals.user = null;
       logger.info(req.signedCookies);
       return res.status(200).json({ ok: true, message: 'Successful logout' });
     } catch (error) {
