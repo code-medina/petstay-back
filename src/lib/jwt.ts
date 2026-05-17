@@ -26,6 +26,11 @@ export const verifyRefresh=(refresh:string)=>{
   return jwt.verify(refresh,secretRefreshToken);
 }
 
+export const verifyToken=(token:string)=>{
+
+  return jwt.verify(token,secretAccessToken) as JwtPayload;
+}
+
 export const getPayload=(refresh:string)=>{
   return jwt.decode(refresh) as  JwtPayload;
 }
