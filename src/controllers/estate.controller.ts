@@ -12,13 +12,12 @@ export class EstateController {
   }
   createEstate = async (req: Request, res: Response, next: NextFunction) => {
     logger.info('create estate controller');
-    
-    const user=res.locals.user;
-    if(!user) throw new AppError('user not defined', 401);
-    
+
+    const user = res.locals.user;
+    if (!user) throw new AppError('user not defined', 401);
+
     try {
-   
-          const dtos = CreateEstateDto.safeParse({...req.body,owner:user.id});
+      const dtos = CreateEstateDto.safeParse({ ...req.body, owner: user.id });
       if (!dtos.success) {
         const message = getZodError(dtos.error);
         throw new AppError(`Invalid input for estate creation:${message}`, 400);
@@ -35,11 +34,11 @@ export class EstateController {
 
   updateEstate = async (req: Request, res: Response, next: NextFunction) => {
     logger.info('update  estate controller');
-    
-    const user=res.locals.user;
-    if(!user) throw new AppError("User not defined",401);
+
+    const user = res.locals.user;
+    if (!user) throw new AppError('User not defined', 401);
     try {
-      const dtos = EditEstateDto.safeParse({...req.body,owner:user.id});
+      const dtos = EditEstateDto.safeParse({ ...req.body, owner: user.id });
       if (!dtos.success) {
         const message = getZodError(dtos.error);
         throw new AppError(`Invalid input for estate update:${message}`, 400);
@@ -49,6 +48,19 @@ export class EstateController {
       return res
         .status(201)
         .json({ ok: true, message: 'successful update', data: editEstate });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  listEstate = async (req: Request, res: Response, next: NextFunction) => {
+    logger.info('List  estate controller');
+
+    try {
+      const list = await this.service.listAllEstate();
+      return res
+        .status(201)
+        .json({ ok: true, message: 'successful list', data: list });
     } catch (error) {
       next(error);
     }
