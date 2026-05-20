@@ -177,3 +177,9 @@ export const EditEstateDto = EstateBaseSchema
 
 export type EditEstateDtoType =
   z.infer<typeof EditEstateDto>;
+
+export const  DeleteEstateDto=z.object({
+  _id:MongoIdSchema,
+  owner:MongoIdSchema
+});
+export type DeleteEstateDtoType=z.infer<typeof DeleteEstateDto>;
