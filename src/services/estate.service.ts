@@ -1,5 +1,6 @@
 import type {
   CreateEstateDtoType,
+  DeleteEstateDtoType,
   EditEstateDtoType,
 } from '../dtos/estate.dto.js';
 import { AppError } from '../errors/app.error.js';
@@ -41,6 +42,17 @@ export class EstateService {
     } catch (error) {
       logger.error(error);
       throw new AppError('Failed List all estates');
+    }
+  };
+
+  deleteEstate = (dto: DeleteEstateDtoType) => {
+    logger.info('delete estate');
+    try {
+      return this.repo.remove(dto);
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      logger.error(error);
+      throw new AppError('Failed delete estate');
     }
   };
 }
