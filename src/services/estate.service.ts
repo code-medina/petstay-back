@@ -26,6 +26,7 @@ export class EstateService {
   updateEstate = (dto: EditEstateDtoType) => {
     logger.info('Edit estate service');
     try {
+      
       return this.repo.edit(dto);
     } catch (error) {
       if (error instanceof AppError) throw error;

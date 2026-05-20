@@ -17,9 +17,11 @@ estateRouter.post(
   controller.createEstate,
 );
 
-//TODO add middleware auth & role 
-//edit estate 
+//TODO add middleware auth & role
+//edit estate
 estateRouter.patch(
   '/estate',
+  authMiddleware,
+  authorizeMiddleware(['landlord']),
   controller.updateEstate,
 );

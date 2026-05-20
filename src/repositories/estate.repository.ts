@@ -18,14 +18,22 @@ export class EstateRepository implements IEstateRepository {
   async edit(parsedDto: EditEstateDtoType): Promise<IEstate> {
     logger.info(' update estate repository');
     const dtoWithoutUndefined = JSON.parse(JSON.stringify(parsedDto));
-    const { _id: userId, ...dto } = dtoWithoutUndefined;
+    const { _id, owner, ...data } = dtoWithoutUndefined;
     try {
       // findByIdAndUpdate only updates the fields present in 'updates'
-      const updateEstate = await Estate.findByIdAndUpdate(
+      const updateEstate = await Estate.findOneAndUpdate(
+        {
+          _id,
+          owner,
+        },
+        data,
+        { new: true, runValidators: true },
+      );
+      /*   const updateEstate = await Estate.findByIdAndUpdate(
         userId,
         { $set: dto }, // $set ensures only specific fields are modified
         { new: true, runValidators: true }, // 'new: true' returns the updated doc
-      );
+      ); */
       if (!updateEstate) throw new AppError('Estate Not found', 404);
       return updateEstate;
     } catch (error) {
