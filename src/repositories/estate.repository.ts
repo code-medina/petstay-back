@@ -7,10 +7,14 @@ import { Estate, type IEstate } from '../models/estate.model.js';
 import { logger } from '../lib/logger.js';
 
 export interface IEstateRepository {
+  list(): Promise<IEstate[]>;
   save(dto: CreateEstateDtoType): Promise<IEstate>;
   edit(dto: EditEstateDtoType): Promise<IEstate>;
 }
 export class EstateRepository implements IEstateRepository {
+  list() {
+    return Estate.find({});
+  }
   save(parsedDto: CreateEstateDtoType): Promise<IEstate> {
     const dto = JSON.parse(JSON.stringify(parsedDto));
     return Estate.create(dto);
