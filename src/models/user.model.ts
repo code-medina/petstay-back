@@ -7,7 +7,7 @@ export interface IUser {
   password: string;
   role: 'tenant' | 'landlord';
   favorites: Types.ObjectId[];
-  estates: Types.ObjectId[];
+ // estates: Types.ObjectId[];
 }
 const UserSchema = new Schema<IUser>(
   {
@@ -34,7 +34,7 @@ const UserSchema = new Schema<IUser>(
       default: 'tenant',
     },
     favorites: [{ type: Schema.Types.ObjectId, ref: 'Estate' }],
-    estates: [{ type: Schema.Types.ObjectId, ref: 'Estate' }],
+   // estates: [{ type: Schema.Types.ObjectId, ref: 'Estate' }],
   },
   { timestamps: true },
 );

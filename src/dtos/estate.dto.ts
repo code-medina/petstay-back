@@ -52,6 +52,7 @@ const AddressSchema = z.object({
 /* ------------------------------------------------ */
 
 const EstateBaseSchema = z.object({
+  owner:MongoIdSchema,
   name: textField('name'),
 
   address: AddressSchema,
@@ -165,7 +166,7 @@ export const EditEstateDto = EstateBaseSchema
       data.patioDimensions
     ) {
       ctx.addIssue({
-        code: z.ZodIssueCode.custom,
+        code:"custom",
         path: ['patioDimensions'],
         message:
           'Patio dimensions should not exist when hasPatio is false',
