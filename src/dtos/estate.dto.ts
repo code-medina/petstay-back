@@ -142,6 +142,7 @@ export const EditEstateDto = EstateBaseSchema
   .partial()
   .extend({
     _id: MongoIdSchema,
+    owner:MongoIdSchema,
   })
   .superRefine((data, ctx) => {
     /*
