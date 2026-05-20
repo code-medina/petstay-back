@@ -26,12 +26,21 @@ export class EstateService {
   updateEstate = (dto: EditEstateDtoType) => {
     logger.info('Edit estate service');
     try {
-      
       return this.repo.edit(dto);
     } catch (error) {
       if (error instanceof AppError) throw error;
 
+      logger.error(error);
       throw new AppError('Failed update');
+    }
+  };
+  listAllEstate = () => {
+    logger.info('List all estate');
+    try {
+      return this.repo.list();
+    } catch (error) {
+      logger.error(error);
+      throw new AppError('Failed List all estates');
     }
   };
 }
