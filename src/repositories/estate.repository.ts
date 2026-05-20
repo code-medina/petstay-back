@@ -1,5 +1,6 @@
 import type {
   CreateEstateDtoType,
+  DeleteEstateDtoType,
   EditEstateDtoType,
 } from '../dtos/estate.dto.js';
 import { AppError } from '../errors/app.error.js';
@@ -7,11 +8,26 @@ import { Estate, type IEstate } from '../models/estate.model.js';
 import { logger } from '../lib/logger.js';
 
 export interface IEstateRepository {
+  remove(dto: DeleteEstateDtoType): Promise<void>;
   list(): Promise<IEstate[]>;
   save(dto: CreateEstateDtoType): Promise<IEstate>;
   edit(dto: EditEstateDtoType): Promise<IEstate>;
 }
 export class EstateRepository implements IEstateRepository {
+ async  remove(dto: DeleteEstateDtoType): Promise<void> {
+    try {
+      const estate = await Estate.findOneAndDelete({
+        _id: dto._id,
+        owner: dto.owner,
+      });
+      if (!estate) throw new AppError('Estate not Found', 404);
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+
+      logger.error(error);
+      throw new AppError('Error during deletion');
+    }
+  }
   list() {
     return Estate.find({});
   }
@@ -45,7 +61,7 @@ export class EstateRepository implements IEstateRepository {
 
       if (error instanceof AppError) throw error;
 
-      throw new AppError('Failed update', 500);
+      throw new AppError('Error during updating', 500);
     }
   }
 }
