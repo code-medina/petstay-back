@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { EstateController } from '../controllers/estate.controller.js';
 import { EstateService } from '../services/estate.service.js';
-import { EstateRepository } from '../repositiries/estate.repository.js';
+import { EstateRepository } from '../repositories/estate.repository.js';
 import { authMiddleware } from '../middlewares/auth.middleware.js';
 import { authorizeMiddleware } from '../middlewares/authorize.middleware.js';
 
@@ -13,6 +13,15 @@ const controller = new EstateController(service);
 estateRouter.post(
   '/estate',
   authMiddleware,
-  authorizeMiddleware(["landlord"]),
+  authorizeMiddleware(['landlord']),
   controller.createEstate,
+);
+
+//TODO add middleware auth & role
+//edit estate
+estateRouter.patch(
+  '/estate',
+  authMiddleware,
+  authorizeMiddleware(['landlord']),
+  controller.updateEstate,
 );

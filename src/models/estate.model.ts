@@ -2,13 +2,14 @@ import { Schema, model, Types } from 'mongoose';
 
 export interface IEstate {
   _id: Types.ObjectId;
+  owner: Types.ObjectId;
   name: string;
   address: {
     street: string;
     zone: string; // localidad zona o barrio
     city: string;
     state: string; // estado o provincia
-    postalCode: string;
+    postalCode?: string;
     country: string;
   };
   price: number;
@@ -22,11 +23,16 @@ export interface IEstate {
     length: number;
     width: number;
   };
-  description: string;
+  description?: string;
   rentalType: 'monthly' | 'daily' | 'annual' | 'holiday';
 }
 const EstateSchema = new Schema<IEstate>(
   {
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
     name: {
       type: String,
       required: [true, 'name is required'],
@@ -73,7 +79,7 @@ const EstateSchema = new Schema<IEstate>(
     },
     rentalType: {
       type: String,
-  enum: ['annual', 'holiday', 'daily', 'monthly'],
+      enum: ['annual', 'holiday', 'daily', 'monthly'],
       required: true,
     },
   },
