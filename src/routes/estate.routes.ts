@@ -25,3 +25,10 @@ estateRouter.patch(
   controller.updateEstate,
 );
 estateRouter.get('/estate', controller.listEstate);
+
+estateRouter.delete(
+  '/estate/:id',
+  authMiddleware,
+  authorizeMiddleware(['landlord']),
+  controller.deleteEstate,
+);
