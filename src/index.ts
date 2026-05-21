@@ -45,7 +45,10 @@ app.get('/', (req, res) => {
 app.use((req, res, next) => {
   logger.info('----body-----');
   logger.info(req.body);
-  logger.info('----body-----');
+  logger.info('----method-----');
+  logger.info(req.method);
+  logger.info('---url----');
+  logger.info(req.url);
 
   next();
 });

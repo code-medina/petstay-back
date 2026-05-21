@@ -1,6 +1,10 @@
 import type { NextFunction, Request, Response } from 'express';
 import type { EstateService } from '../services/estate.service.js';
-import { CreateEstateDto, EditEstateDto } from '../dtos/estate.dto.js';
+import {
+  CreateEstateDto,
+  DeleteEstateDto,
+  EditEstateDto,
+} from '../dtos/estate.dto.js';
 import { AppError } from '../errors/app.error.js';
 import { logger } from '../lib/logger.js';
 import { getZodError } from '../lib/zod.js';
@@ -61,6 +65,25 @@ export class EstateController {
       return res
         .status(201)
         .json({ ok: true, message: 'successful list', data: list });
+    } catch (error) {
+      next(error);
+    }
+  };
+  deleteEstate = async (req: Request, res: Response, next: NextFunction) => {
+    logger.info('DELETE  estate controller');
+    const owner = res.locals.user;
+    const id = req.params.id;
+    const dto = DeleteEstateDto.safeParse({ _id: id, owner: owner.id });
+    if (!dto.success) {
+      const message = getZodError(dto.error);
+
+      throw new AppError(`id and owner are required: ${message}`);
+    }
+    try {
+      await this.service.deleteEstate(dto.data);
+      return res
+        .status(201)
+        .json({ ok: true, message: 'successful delete', data: dto.data });
     } catch (error) {
       next(error);
     }
