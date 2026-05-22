@@ -2,6 +2,7 @@ import type {
   CreateEstateDtoType,
   DeleteEstateDtoType,
   EditEstateDtoType,
+  MongoIdSchemaType,
 } from '../dtos/estate.dto.js';
 import { AppError } from '../errors/app.error.js';
 import { logger } from '../lib/logger.js';
@@ -13,6 +14,19 @@ export class EstateService {
     this.repo = repository;
   }
 
+   getEstateById=async(dto:MongoIdSchemaType)=>{
+    logger.info("get one estate service");
+    try {
+      const estate=await this.repo.oneById(dto);
+      if(!estate) throw new AppError("Not found estate",404);
+      return estate;
+    } catch (error) {
+      logger.error(error);
+      if(error instanceof AppError) throw error;
+      throw new AppError("Failed get one estate by id",500);
+      
+    }
+  }
   createEstate = (dto: CreateEstateDtoType) => {
     logger.info('create estate service');
     try {
