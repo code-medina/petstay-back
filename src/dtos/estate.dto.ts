@@ -12,12 +12,13 @@ const textField = (field: string) =>
     .min(3, `The ${field} must be at least 3 characters long.`)
     .max(30, `The ${field} must be a maximum of 30 characters`);
 
-const MongoIdSchema = z.string().refine(
+export const MongoIdSchema = z.string().refine(
   mongoose.isValidObjectId,
   {
     message: 'Invalid MongoDB ID',
   }
 );
+export type MongoIdSchemaType=z.infer<typeof MongoIdSchema>;
 
 /* ------------------------------------------------ */
 /* Nested Schemas */
