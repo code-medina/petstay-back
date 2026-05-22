@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from 'express';
 import type { EstateService } from '../services/estate.service.js';
 import {
+  MongoIdSchema,
   CreateEstateDto,
   DeleteEstateDto,
   EditEstateDto,
@@ -14,6 +15,19 @@ export class EstateController {
   constructor(service: EstateService) {
     this.service = service;
   }
+  getOneEstate = async (req: Request, res: Response, next: NextFunction) => {
+    logger.info('get one estate controller');
+    const dto = MongoIdSchema.safeParse(req.params.id);
+    if (!dto.success) throw new AppError('Id estate invalid', 400);
+    try {
+      const estate = await this.service.getEstateById(dto.data);
+      return res
+        .status(200)
+        .json({ ok: true, message: 'successful get one estate', data: estate });
+    } catch (error) {
+      next(error);
+    }
+  };
   createEstate = async (req: Request, res: Response, next: NextFunction) => {
     logger.info('create estate controller');
 
