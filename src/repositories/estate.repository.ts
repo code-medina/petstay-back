@@ -1,4 +1,5 @@
 import type {
+  MongoIdSchemaType,
   CreateEstateDtoType,
   DeleteEstateDtoType,
   EditEstateDtoType,
@@ -8,12 +9,16 @@ import { Estate, type IEstate } from '../models/estate.model.js';
 import { logger } from '../lib/logger.js';
 
 export interface IEstateRepository {
+  oneById(dto:MongoIdSchemaType):Promise<IEstate | null>;
   remove(dto: DeleteEstateDtoType): Promise<void>;
   list(): Promise<IEstate[]>;
   save(dto: CreateEstateDtoType): Promise<IEstate>;
   edit(dto: EditEstateDtoType): Promise<IEstate>;
 }
 export class EstateRepository implements IEstateRepository {
+  oneById(dto: MongoIdSchemaType): Promise<IEstate |null> {
+  return Estate.findById(dto);
+  }
  async  remove(dto: DeleteEstateDtoType): Promise<void> {
     try {
       const estate = await Estate.findOneAndDelete({
