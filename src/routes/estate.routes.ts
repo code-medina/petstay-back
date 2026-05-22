@@ -26,6 +26,8 @@ estateRouter.patch(
 );
 estateRouter.get('/estate', controller.listEstate);
 
+estateRouter.get('/estate/:id', controller.getOneEstate);
+
 estateRouter.delete(
   '/estate/:id',
   authMiddleware,
