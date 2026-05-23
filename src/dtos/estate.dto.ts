@@ -48,6 +48,12 @@ const AddressSchema = z.object({
   country: textField('country'),
 });
 
+/* Address queryparams */
+export const AddressQueryParam=z.object({
+  address:textField("address property")
+});
+export type AddressQueryParamType=z.infer<typeof AddressQueryParam>;
+
 /* ------------------------------------------------ */
 /* Base Schema */
 /* ------------------------------------------------ */
