@@ -5,6 +5,7 @@ import {
   CreateEstateDto,
   DeleteEstateDto,
   EditEstateDto,
+  AddressQueryParam,
 } from '../dtos/estate.dto.js';
 import { AppError } from '../errors/app.error.js';
 import { logger } from '../lib/logger.js';
@@ -15,6 +16,22 @@ export class EstateController {
   constructor(service: EstateService) {
     this.service = service;
   }
+
+  getByAddress = async (req: Request, res: Response, next: NextFunction) => {
+    logger.info('get by address estate controller');
+    try {
+      const dto = AddressQueryParam.safeParse(req.query);
+      if (!dto.success) throw new AppError('Invalid address query param', 400);
+
+      const list = await this.service.searchByAddress(dto.data.address);
+      return res
+        .status(200)
+        .json({ ok: true, message: 'successful search address', data: list });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getOneEstate = async (req: Request, res: Response, next: NextFunction) => {
     logger.info('get one estate controller');
     const dto = MongoIdSchema.safeParse(req.params.id);

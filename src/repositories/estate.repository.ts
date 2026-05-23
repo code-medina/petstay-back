@@ -9,17 +9,30 @@ import { Estate, type IEstate } from '../models/estate.model.js';
 import { logger } from '../lib/logger.js';
 
 export interface IEstateRepository {
-  oneById(dto:MongoIdSchemaType):Promise<IEstate | null>;
+  findByAdress(address: string): Promise<IEstate[]>;
+  oneById(dto: MongoIdSchemaType): Promise<IEstate | null>;
   remove(dto: DeleteEstateDtoType): Promise<void>;
   list(): Promise<IEstate[]>;
   save(dto: CreateEstateDtoType): Promise<IEstate>;
   edit(dto: EditEstateDtoType): Promise<IEstate>;
 }
 export class EstateRepository implements IEstateRepository {
-  oneById(dto: MongoIdSchemaType): Promise<IEstate |null> {
-  return Estate.findById(dto);
+  
+  findByAdress(address: string): Promise<IEstate[]> {
+    return Estate.find({
+      $or: [
+        { 'address.city': address },
+        { 'address.state': address },
+        { 'address.country': address },
+        { 'address.street': address },
+        { 'address.zone': address },
+      ],
+    });
   }
- async  remove(dto: DeleteEstateDtoType): Promise<void> {
+  oneById(dto: MongoIdSchemaType): Promise<IEstate | null> {
+    return Estate.findById(dto);
+  }
+  async remove(dto: DeleteEstateDtoType): Promise<void> {
     try {
       const estate = await Estate.findOneAndDelete({
         _id: dto._id,

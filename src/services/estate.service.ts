@@ -13,7 +13,18 @@ export class EstateService {
   constructor(repository: IEstateRepository) {
     this.repo = repository;
   }
-
+  
+  searchByAddress=async (address:string)=>{
+    logger.info("search by address estate");
+    try {
+      return await this.repo.findByAdress(address);
+      
+    } catch (error) {
+      if(error instanceof AppError) throw error;
+      logger.info(error);
+      throw new AppError("Failed search by address",500);
+    }
+  }
    getEstateById=async(dto:MongoIdSchemaType)=>{
     logger.info("get one estate service");
     try {
