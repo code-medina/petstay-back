@@ -5,7 +5,7 @@ import {
   CreateEstateDto,
   DeleteEstateDto,
   EditEstateDto,
-  AddressQueryParam,
+  QueryParamFilter,
 } from '../dtos/estate.dto.js';
 import { AppError } from '../errors/app.error.js';
 import { logger } from '../lib/logger.js';
@@ -17,20 +17,7 @@ export class EstateController {
     this.service = service;
   }
 
-  getByAddress = async (req: Request, res: Response, next: NextFunction) => {
-    logger.info('get by address estate controller');
-    try {
-      const dto = AddressQueryParam.safeParse(req.query);
-      if (!dto.success) throw new AppError('Invalid address query param', 400);
 
-      const list = await this.service.searchByAddress(dto.data.address);
-      return res
-        .status(200)
-        .json({ ok: true, message: 'successful search address', data: list });
-    } catch (error) {
-      next(error);
-    }
-  };
 
   getOneEstate = async (req: Request, res: Response, next: NextFunction) => {
     logger.info('get one estate controller');
@@ -90,8 +77,27 @@ export class EstateController {
 
   listEstate = async (req: Request, res: Response, next: NextFunction) => {
     logger.info('List  estate controller');
-
     try {
+      const query = QueryParamFilter.safeParse(req.query);
+      if (!query.success) {
+        throw new AppError(
+          `Bad request query: ${getZodError(query.error)}`,
+          400,
+        );
+      }
+
+      const filters = JSON.parse(JSON.stringify(query.data));
+      logger.info(filters);
+      const entries = Object.entries(filters);
+      if (entries.length > 0) {
+        logger.info('con filter');
+
+        logger.info(entries);
+        const filterList = await this.service.searchFilter(query.data);
+        return res.status(200).json({ ok: true, message: "successful estate filter ", data: filterList });
+
+
+      }
       const list = await this.service.listAllEstate();
       return res
         .status(201)

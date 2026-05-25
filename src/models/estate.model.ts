@@ -25,9 +25,13 @@ export interface IEstate {
   };
   description?: string;
   rentalType: 'monthly' | 'daily' | 'annual' | 'holiday';
+  availabilityFor:Date;
+  imagesUrl:string[]
 }
 const EstateSchema = new Schema<IEstate>(
   {
+    imagesUrl:{type:[String],default:[]},
+    availabilityFor:{type:Date,required:true},
     owner: {
       type: Schema.Types.ObjectId,
       ref: 'User',
