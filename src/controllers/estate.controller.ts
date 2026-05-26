@@ -89,19 +89,14 @@ export class EstateController {
       const filters = JSON.parse(JSON.stringify(query.data));
       logger.info(filters);
       const entries = Object.entries(filters);
-      if (entries.length > 0) {
-        logger.info('con filter');
 
-        logger.info(entries);
-        const filterList = await this.service.searchFilter(query.data);
-        return res.status(200).json({ ok: true, message: "successful estate filter ", data: filterList });
+      logger.info(entries);
+      //estate currentPage totalPages
+      const data = await this.service.searchFilter(query.data);
+      return res.status(200).json({ ok: true, message: entries.length > 2 ? "successful list estate filter " : "success list estate", data });
 
 
-      }
-      const list = await this.service.listAllEstate();
-      return res
-        .status(201)
-        .json({ ok: true, message: 'successful list', data: list });
+
     } catch (error) {
       next(error);
     }
