@@ -7,35 +7,35 @@ import type {
 import { AppError } from '../errors/app.error.js';
 import { logger } from '../lib/logger.js';
 import type { IEstateRepository } from '../repositories/estate.repository.js';
+import type { QueryParamFilterType } from "../dtos/estate.dto.js";
 
 export class EstateService {
   private repo: IEstateRepository;
   constructor(repository: IEstateRepository) {
     this.repo = repository;
   }
-  
-  searchByAddress=async (address:string)=>{
-    logger.info("search by address estate");
+  searchFilter = async (dto: QueryParamFilterType) => {
+    logger.info("Filter query params service");
     try {
-      return await this.repo.findByAdress(address);
-      
+      return this.repo.findFilter(dto);
     } catch (error) {
-      if(error instanceof AppError) throw error;
-      logger.info(error);
-      throw new AppError("Failed search by address",500);
+      if (error instanceof AppError) throw error;
+      throw new AppError("Failed filter  estate", 500);
+
     }
   }
-   getEstateById=async(dto:MongoIdSchemaType)=>{
+
+  getEstateById = async (dto: MongoIdSchemaType) => {
     logger.info("get one estate service");
     try {
-      const estate=await this.repo.oneById(dto);
-      if(!estate) throw new AppError("Not found estate",404);
+      const estate = await this.repo.oneById(dto);
+      if (!estate) throw new AppError("Not found estate", 404);
       return estate;
     } catch (error) {
       logger.error(error);
-      if(error instanceof AppError) throw error;
-      throw new AppError("Failed get one estate by id",500);
-      
+      if (error instanceof AppError) throw error;
+      throw new AppError("Failed get one estate by id", 500);
+
     }
   }
   createEstate = (dto: CreateEstateDtoType) => {

@@ -1,14 +1,19 @@
+import type { QueryFilter } from "mongoose";
 import type {
   MongoIdSchemaType,
   CreateEstateDtoType,
   DeleteEstateDtoType,
   EditEstateDtoType,
+  QueryParamFilterType,
 } from '../dtos/estate.dto.js';
 import { AppError } from '../errors/app.error.js';
 import { Estate, type IEstate } from '../models/estate.model.js';
 import { logger } from '../lib/logger.js';
 
+
+
 export interface IEstateRepository {
+  findFilter(dto: QueryParamFilterType): Promise<IEstate[]>;
   findByAdress(address: string): Promise<IEstate[]>;
   oneById(dto: MongoIdSchemaType): Promise<IEstate | null>;
   remove(dto: DeleteEstateDtoType): Promise<void>;
@@ -16,8 +21,46 @@ export interface IEstateRepository {
   save(dto: CreateEstateDtoType): Promise<IEstate>;
   edit(dto: EditEstateDtoType): Promise<IEstate>;
 }
+
+
+
 export class EstateRepository implements IEstateRepository {
-  
+  findFilter(dto: QueryParamFilterType): Promise<IEstate[]> {
+    const filter: QueryFilter<IEstate> = {};
+    if(dto.animalAllowed)
+    {
+      if(filter.animalAllowed)
+      filter.animalAllowed={$all:[...dto.animalAllowed]};
+    }
+
+    if(dto.availabilityFor)
+    {
+      filter.availabily.$gte=dto.availabilityFor;
+    }
+    if (dto.address) {
+      filter.$or = [
+        { "address.city": { $regex: dto.address, $options: "i" } },
+        { "address.state": { $regex: dto.address, $options: "i" } },
+        { "address.country": { $regex: dto.address, $options: "i" } },
+        { "address.street": { $regex: dto.address, $options: "i" } },
+        { "address.zone": { $regex: dto.address, $options: "i" } },
+      ];
+    }
+
+    if (dto.minPrice || dto.maxPrice) {
+      filter.price = {};
+
+      if (dto.minPrice !== undefined) {
+        filter.price.$gte = dto.minPrice;
+      }
+
+      if (dto.maxPrice !== undefined) {
+        filter.price.$lte = dto.maxPrice;
+      }
+    }
+
+    return Estate.find(filter);
+  }
   findByAdress(address: string): Promise<IEstate[]> {
     return Estate.find({
       $or: [

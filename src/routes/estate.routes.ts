@@ -26,7 +26,6 @@ estateRouter.patch(
 );
 estateRouter.get('/estate', controller.listEstate);
 
-estateRouter.get('/estate/search', controller.getByAddress);
 estateRouter.get('/estate/:id', controller.getOneEstate);
 
 estateRouter.delete(
