@@ -1,9 +1,12 @@
 import * as z from 'zod';
 import mongoose from 'mongoose';
 
+
+
 /* ------------------------------------------------ */
 /* Helpers */
 /* ------------------------------------------------ */
+
 
 const textField = (field: string) =>
   z
@@ -55,6 +58,8 @@ export const MaxPrice = z
   .pipe(z.number().positive('The maximum price must be positive.'));
 
 export const QueryParamFilter = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(10),
   address: textField('address property').optional(),
 
   minPrice: z.coerce
@@ -95,6 +100,7 @@ export const QueryParamFilter = z.object({
       },
     )
     .optional(),
+
 });
 export type QueryParamFilterType = z.infer<typeof QueryParamFilter>;
 /* ------------------------------------------------ */
@@ -216,3 +222,4 @@ export const DeleteEstateDto = z.object({
   owner: MongoIdSchema,
 });
 export type DeleteEstateDtoType = z.infer<typeof DeleteEstateDto>;
+
