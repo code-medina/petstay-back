@@ -11,10 +11,15 @@ import { Estate, type IEstate } from '../models/estate.model.js';
 import { logger } from '../lib/logger.js';
 
 
+type ResponseListFilter = {
+  estate: IEstate[];
+  totalPages: number;
+  currentPage: number;
 
+}
 export interface IEstateRepository {
-  findFilter(dto: QueryParamFilterType): Promise<IEstate[]>;
-  findByAdress(address: string): Promise<IEstate[]>;
+  findFilter(dto: QueryParamFilterType): Promise<ResponseListFilter>;
+
   oneById(dto: MongoIdSchemaType): Promise<IEstate | null>;
   remove(dto: DeleteEstateDtoType): Promise<void>;
   list(): Promise<IEstate[]>;
@@ -24,18 +29,17 @@ export interface IEstateRepository {
 
 
 
+
 export class EstateRepository implements IEstateRepository {
-  findFilter(dto: QueryParamFilterType): Promise<IEstate[]> {
+  async findFilter(dto: QueryParamFilterType): Promise<ResponseListFilter> {
     const filter: QueryFilter<IEstate> = {};
-    if(dto.animalAllowed)
-    {
-      if(filter.animalAllowed)
-      filter.animalAllowed={$all:[...dto.animalAllowed]};
+    if (dto.animalAllowed) {
+      if (filter.animalAllowed)
+        filter.animalAllowed = { $all: [...dto.animalAllowed] };
     }
 
-    if(dto.availabilityFor)
-    {
-      filter.availabily.$gte=dto.availabilityFor;
+    if (dto.availabilityFor) {
+      filter.availabily.$gte = dto.availabilityFor;
     }
     if (dto.address) {
       filter.$or = [
@@ -58,20 +62,12 @@ export class EstateRepository implements IEstateRepository {
         filter.price.$lte = dto.maxPrice;
       }
     }
+    const list = await Estate.find(filter).limit(dto.limit).skip((dto.page - 1) * dto.limit).sort({ createdAt: -1 });
+    const count = await Estate.countDocuments();
+    return {estate:list,currentPage:dto.page,totalPages:Math.ceil(count/dto.limit)};
 
-    return Estate.find(filter);
   }
-  findByAdress(address: string): Promise<IEstate[]> {
-    return Estate.find({
-      $or: [
-        { 'address.city': address },
-        { 'address.state': address },
-        { 'address.country': address },
-        { 'address.street': address },
-        { 'address.zone': address },
-      ],
-    });
-  }
+
   oneById(dto: MongoIdSchemaType): Promise<IEstate | null> {
     return Estate.findById(dto);
   }
