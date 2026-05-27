@@ -1,6 +1,9 @@
 import type { NextFunction, Response, Request } from "express";
 import type { UserService } from "../services/user.service.js";
 import { AppError } from "../errors/app.error.js";
+import { logger } from "../lib/logger.js";
+import { BodyIdSchema } from "../dtos/estate.dto.js";
+import { getZodError } from "../lib/zod.js";
 
 export class UserController {
     private service: UserService;
@@ -26,7 +29,27 @@ export class UserController {
 
             const data = await this.service.showFavorites(userLocals.id);
             return res.status(200).json({ ok: true, message: "successfull show info with favorites", data })
+
         } catch (error) { nextFunction(error) }
     }
+    createFavorite = async (req: Request, res: Response, nextFunction: NextFunction) => {
+        logger.info("create favorite");
+        try {
+            const userLocals = res.locals.user;
+            if (!userLocals) throw new AppError("user not defined", 401);
+            const idEstate = BodyIdSchema.safeParse(req.body);
+            if (!idEstate.success) throw new AppError(`Bad request: ${getZodError(idEstate.error)}`, 400);
+
+            const data = await this.service.addToMyFavorite(userLocals.id, idEstate.data._id);
+            if (!data) throw new AppError("not found user to add  favorites", 404);
+            return res.status(200).json({ ok: true, message: "successful add favorite", data });
+
+
+
+        } catch (error) {
+            nextFunction(error)
+        }
+    }
+
 
 }

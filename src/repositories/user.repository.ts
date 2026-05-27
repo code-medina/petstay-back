@@ -1,4 +1,4 @@
-import type { MongoIdSchemaType } from "../dtos/estate.dto.js"
+import type { MongoIdSchemaType } from "../dtos/estate.dto.js";
 import type { IEstate } from "../models/estate.model.js"
 import { User, type IUser } from "../models/user.model.js"
 
@@ -8,6 +8,7 @@ export interface IUserPopulated
     favorites: IEstate[]
 }
 export interface IUserRepository {
+    addFavorites(idUser: MongoIdSchemaType, idEstate: MongoIdSchemaType): Promise<IUser | null>;
 
     findMe(id: MongoIdSchemaType): Promise<IUser | null>;
     findMeWithFavorties(id: MongoIdSchemaType): Promise<IUserPopulated | null>;
@@ -15,6 +16,20 @@ export interface IUserRepository {
 }
 export class UserRepository
     implements IUserRepository {
+    async addFavorites(idUser: MongoIdSchemaType, idEstate: MongoIdSchemaType): Promise<IUser | null> {
+
+        return User.findByIdAndUpdate(idUser,
+            {
+                $addToSet:
+                {
+                    favorites: idEstate
+
+                }
+            },
+            { new: true })
+            .select("-password");
+
+    }
 
     findMe(id: MongoIdSchemaType) {
         return User.findById(id).select("-password");

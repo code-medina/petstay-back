@@ -1,6 +1,7 @@
 import type { MongoIdSchemaType } from "../dtos/estate.dto.js";
 import { AppError } from "../errors/app.error.js";
 import { logger } from "../lib/logger.js";
+import { Estate } from "../models/estate.model.js";
 import type { IUserRepository } from "../repositories/user.repository.js";
 
 export class UserService {
@@ -33,6 +34,20 @@ export class UserService {
             throw new AppError(`Failed show basic info user`, 500);
 
 
+
+        }
+    }
+    addToMyFavorite = async (idUser: MongoIdSchemaType, idEstate: MongoIdSchemaType) => {
+        try {
+            const estateExists = await Estate.exists({ _id: idEstate })
+
+            if (!estateExists) throw new AppError("Estate not found", 404);
+
+            return this.repo.addFavorites(idUser, idEstate);
+        } catch (error) {
+            logger.info(error);
+            if (error instanceof AppError) throw error;
+            throw new AppError("Failed add to my favorite estate", 500);
 
         }
     }

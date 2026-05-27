@@ -18,3 +18,7 @@ userRouter.get("/users/me/favorites",
     authMiddleware,
     authorizeMiddleware(["tenant"]),
     controller.getMeFavorites);
+userRouter.post("/users/me/favorites",
+    authMiddleware,
+    authorizeMiddleware(["tenant"]),
+    controller.createFavorite)

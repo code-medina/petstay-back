@@ -20,6 +20,10 @@ export const MongoIdSchema = z.string().refine(mongoose.isValidObjectId, {
 });
 export type MongoIdSchemaType = z.infer<typeof MongoIdSchema>;
 
+export const BodyIdSchema = z.object({
+  _id: MongoIdSchema
+})
+
 /* ------------------------------------------------ */
 /* Nested Schemas */
 /* ------------------------------------------------ */
