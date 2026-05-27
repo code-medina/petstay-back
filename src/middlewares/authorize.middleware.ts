@@ -1,10 +1,12 @@
 import type { NextFunction, RequestHandler, Request, Response } from 'express';
 import { AppError } from '../errors/app.error.js';
 import { User } from '../models/user.model.js';
+import { logger } from '../lib/logger.js';
 
 export const authorizeMiddleware = (roles: string[]): RequestHandler => {
   return async (req: Request, res: Response, next: NextFunction) => {
     // auth middleware attached user {id} of jwtpayload
+    logger.info("Authorize middleware")
     const userLocals = res.locals.user;
     if (!userLocals) return next(new AppError('user not defined', 401));
 

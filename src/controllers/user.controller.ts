@@ -8,7 +8,7 @@ export class UserController {
         this.service = service;
     }
 
-    getMe =async  (_req: Request, res: Response, nextFunction: NextFunction)=>{
+    getMe = async (_req: Request, res: Response, nextFunction: NextFunction) => {
         try {
             const userLocals = res.locals.user;
             if (!userLocals) throw new AppError("user not defined", 401);
@@ -19,4 +19,14 @@ export class UserController {
             nextFunction(error);
         }
     }
+    getMeFavorites = async (_req: Request, res: Response, nextFunction: NextFunction) => {
+        try {
+            const userLocals = res.locals.user;
+            if (!userLocals) throw new AppError("user not defined", 401);
+
+            const data = await this.service.showFavorites(userLocals.id);
+            return res.status(200).json({ ok: true, message: "successfull show info with favorites", data })
+        } catch (error) { nextFunction(error) }
+    }
+
 }

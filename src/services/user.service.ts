@@ -8,6 +8,20 @@ export class UserService {
     constructor(repository: IUserRepository) {
         this.repo = repository;
     }
+    showFavorites = async (id: MongoIdSchemaType) => {
+        try {
+            const userWithFavorites = await this.repo.findMeWithFavorties(id);
+            if (!userWithFavorites) throw new AppError("user not found", 404);
+            return userWithFavorites;
+        } catch (error) {
+
+            logger.error(error);
+            if (error instanceof AppError) throw error;
+
+            throw new AppError("Failed show favorites ", 500);
+
+        }
+    }
     showBasicInfo = async (id: MongoIdSchemaType) => {
         try {
 
