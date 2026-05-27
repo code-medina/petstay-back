@@ -9,6 +9,7 @@ import { logger } from './lib/logger.js';
 import { authRouter } from './routes/auth.routes.js';
 import { connectionDB } from './db/connection.js';
 import { estateRouter } from './routes/estate.routes.js';
+import { userRouter } from './routes/user.routes.js';
 
 const port = Number(process.env.PORT_API || 8888);
 //cors
@@ -55,6 +56,8 @@ app.use((req, res, next) => {
 
 app.use('/api/v1', authRouter);
 app.use('/api/v1', estateRouter);
+app.use('/api/v1', userRouter);
+
 
 //db
 const main = async () => {
