@@ -51,4 +51,18 @@ export class UserService {
 
         }
     }
+    removeToMyFavorite=async (idUser:MongoIdSchemaType,idEstate:MongoIdSchemaType)=>{
+        try {
+            const estateExists = await Estate.exists({ _id: idEstate })
+
+            if (!estateExists) throw new AppError("Estate not found", 404);
+            return this.repo.removeFavorite(idUser,idEstate);
+            
+        } catch (error) {
+            logger.info(error);
+            if (error instanceof AppError) throw error;
+            throw new AppError("Failed remove to my favorite estate", 500);
+
+        }
+    }
 }

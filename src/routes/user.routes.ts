@@ -21,4 +21,8 @@ userRouter.get("/users/me/favorites",
 userRouter.post("/users/me/favorites",
     authMiddleware,
     authorizeMiddleware(["tenant"]),
-    controller.createFavorite)
+    controller.createFavorite);
+userRouter.delete("/users/me/favorites/:_id",
+    authMiddleware,
+    authorizeMiddleware(["tenant"]),
+    controller.deleteFavorite);

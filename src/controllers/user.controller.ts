@@ -2,7 +2,7 @@ import type { NextFunction, Response, Request } from "express";
 import type { UserService } from "../services/user.service.js";
 import { AppError } from "../errors/app.error.js";
 import { logger } from "../lib/logger.js";
-import { BodyIdSchema } from "../dtos/estate.dto.js";
+import { ObjectIdSchema } from "../dtos/estate.dto.js";
 import { getZodError } from "../lib/zod.js";
 
 export class UserController {
@@ -37,7 +37,7 @@ export class UserController {
         try {
             const userLocals = res.locals.user;
             if (!userLocals) throw new AppError("user not defined", 401);
-            const idEstate = BodyIdSchema.safeParse(req.body);
+            const idEstate = ObjectIdSchema.safeParse(req.body);
             if (!idEstate.success) throw new AppError(`Bad request: ${getZodError(idEstate.error)}`, 400);
 
             const data = await this.service.addToMyFavorite(userLocals.id, idEstate.data._id);
@@ -49,6 +49,24 @@ export class UserController {
         } catch (error) {
             nextFunction(error)
         }
+    }
+
+    deleteFavorite = async (req: Request, res: Response, nextFunction: NextFunction) => {
+        logger.info("delete favorite");
+        try {
+
+            const userLocals = res.locals.user;
+            if (!userLocals) throw new AppError("user not defined", 401);
+            const idEstate = ObjectIdSchema.safeParse(req.params);
+            if (!idEstate.success) throw new AppError(`Bad request , query param:${getZodError(idEstate.error)}`, 400);
+            const data = await this.service.removeToMyFavorite(userLocals.id, idEstate.data._id);
+            if (!data) throw new AppError("not found user to remove  favorite", 404);
+            return res.status(200).json({ ok: true, message: "successful delete one favorite", data });
+
+        } catch (error) {
+            nextFunction(error);
+        }
+
     }
 
 

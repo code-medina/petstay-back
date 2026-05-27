@@ -8,15 +8,21 @@ export interface IUserPopulated
     favorites: IEstate[]
 }
 export interface IUserRepository {
-    addFavorites(idUser: MongoIdSchemaType, idEstate: MongoIdSchemaType): Promise<IUser | null>;
 
+    removeFavorite(idUser: MongoIdSchemaType, idEstate: MongoIdSchemaType): Promise<IUser | null>;
+    addFavorites(idUser: MongoIdSchemaType, idEstate: MongoIdSchemaType): Promise<IUser | null>;
     findMe(id: MongoIdSchemaType): Promise<IUser | null>;
     findMeWithFavorties(id: MongoIdSchemaType): Promise<IUserPopulated | null>;
 
 }
 export class UserRepository
     implements IUserRepository {
-    async addFavorites(idUser: MongoIdSchemaType, idEstate: MongoIdSchemaType): Promise<IUser | null> {
+
+    async removeFavorite(idUser: MongoIdSchemaType, idEstate: MongoIdSchemaType): Promise<IUser | null> {
+        return User.findByIdAndUpdate(idUser, { $pull: { favorites: idEstate } }, { new: true }).select("-password");
+    }
+    async addFavorites(idUser: MongoIdSchemaType, idEstate: MongoIdSchemaType): Promise<IUser |
+        null> {
 
         return User.findByIdAndUpdate(idUser,
             {
