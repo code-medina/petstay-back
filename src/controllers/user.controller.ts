@@ -6,6 +6,17 @@ import { ObjectIdSchema } from "../dtos/estate.dto.js";
 import { getZodError } from "../lib/zod.js";
 
 export class UserController {
+    getMeEstates = async (_req: Request, res: Response, nextFunction: NextFunction) => {
+        try {
+            const userLocals = res.locals.user;
+            if (!userLocals) throw new AppError("user not defined", 401);
+            const { user, estates } = await this.service.showMeEstates(userLocals.id);
+
+            return res.status(200).json({ ok: true, message: "Successfull list of estate", data: { user, estates } })
+
+
+        } catch (error) { nextFunction(error) }
+    }
     private service: UserService;
     constructor(service: UserService) {
         this.service = service;

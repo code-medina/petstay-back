@@ -2,21 +2,30 @@ import type { MongoIdSchemaType } from "../dtos/estate.dto.js";
 import type { IEstate } from "../models/estate.model.js"
 import { User, type IUser } from "../models/user.model.js"
 
-export interface IUserPopulated
+export interface IUserPopulatedFavorites
     extends Omit<IUser, 'favorites'> {
 
     favorites: IEstate[]
 }
+
+export interface IUserPopulatedEstates
+    extends Omit<IUser, 'password'> {
+
+    estates: IEstate[]
+}
 export interface IUserRepository {
+
 
     removeFavorite(idUser: MongoIdSchemaType, idEstate: MongoIdSchemaType): Promise<IUser | null>;
     addFavorites(idUser: MongoIdSchemaType, idEstate: MongoIdSchemaType): Promise<IUser | null>;
     findMe(id: MongoIdSchemaType): Promise<IUser | null>;
-    findMeWithFavorties(id: MongoIdSchemaType): Promise<IUserPopulated | null>;
+    findMeWithFavorties(id: MongoIdSchemaType): Promise<IUserPopulatedFavorites | null>;
 
 }
 export class UserRepository
     implements IUserRepository {
+
+
 
     async removeFavorite(idUser: MongoIdSchemaType, idEstate: MongoIdSchemaType): Promise<IUser | null> {
         return User.findByIdAndUpdate(idUser, { $pull: { favorites: idEstate } }, { new: true }).select("-password");
@@ -42,11 +51,11 @@ export class UserRepository
     }
     async findMeWithFavorties(
         id: MongoIdSchemaType
-    ): Promise<IUserPopulated | null> {
+    ): Promise<IUserPopulatedFavorites | null> {
 
         return User.findById(id)
             .select('-password')
             .populate<{ favorites: IEstate[] }>('favorites')
-            .lean<IUserPopulated>()
+            .lean<IUserPopulatedFavorites>()
     }
 }
