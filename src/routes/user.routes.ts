@@ -14,6 +14,7 @@ export const userRouter: Router = Router();
 userRouter.get("/users/me",
     authMiddleware,
     controller.getMe);
+    //tenant
 userRouter.get("/users/me/favorites",
     authMiddleware,
     authorizeMiddleware(["tenant"]),
@@ -26,3 +27,9 @@ userRouter.delete("/users/me/favorites/:_id",
     authMiddleware,
     authorizeMiddleware(["tenant"]),
     controller.deleteFavorite);
+    
+//landlord
+userRouter.get("/users/me/estates",
+    authMiddleware,
+    authorizeMiddleware(["landlord"]),
+    controller.getMeEstates);

@@ -10,6 +10,15 @@ import type { IEstateRepository } from '../repositories/estate.repository.js';
 import type { QueryParamFilterType } from "../dtos/estate.dto.js";
 
 export class EstateService {
+  getEstatesByIdOwner(id: MongoIdSchemaType) {
+    logger.info("get Estatates by id Owner");
+    try {
+      return this.repo.findByOwner(id);
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      throw new AppError("Failed filter  estate", 500);
+    }
+  }
   private repo: IEstateRepository;
   constructor(repository: IEstateRepository) {
     this.repo = repository;

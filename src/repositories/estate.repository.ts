@@ -18,6 +18,7 @@ type ResponseListFilter = {
 
 }
 export interface IEstateRepository {
+  findByOwner(id: MongoIdSchemaType): Promise<IEstate[]>;
   findFilter(dto: QueryParamFilterType): Promise<ResponseListFilter>;
 
   oneById(dto: MongoIdSchemaType): Promise<IEstate | null>;
@@ -31,6 +32,13 @@ export interface IEstateRepository {
 
 
 export class EstateRepository implements IEstateRepository {
+
+  findByOwner(id: MongoIdSchemaType): Promise<IEstate[]> {
+
+    return Estate.find({ owner: id });
+
+  }
+
   async findFilter(dto: QueryParamFilterType): Promise<ResponseListFilter> {
     const filter: QueryFilter<IEstate> = {};
     if (dto.animalAllowed) {
@@ -64,7 +72,7 @@ export class EstateRepository implements IEstateRepository {
     }
     const list = await Estate.find(filter).limit(dto.limit).skip((dto.page - 1) * dto.limit).sort({ createdAt: -1 });
     const count = await Estate.countDocuments();
-    return {estate:list,currentPage:dto.page,totalPages:Math.ceil(count/dto.limit)};
+    return { estate: list, currentPage: dto.page, totalPages: Math.ceil(count / dto.limit) };
 
   }
 
