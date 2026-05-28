@@ -20,6 +20,11 @@ export const MongoIdSchema = z.string().refine(mongoose.isValidObjectId, {
 });
 export type MongoIdSchemaType = z.infer<typeof MongoIdSchema>;
 
+// to use with res.body and res.query
+export const ObjectIdSchema = z.object({
+  _id: MongoIdSchema
+})
+
 /* ------------------------------------------------ */
 /* Nested Schemas */
 /* ------------------------------------------------ */

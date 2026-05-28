@@ -7,6 +7,7 @@ export interface IUser {
   password: string;
   role: 'tenant' | 'landlord';
   favorites: Types.ObjectId[];
+  createdAt:Date
  // estates: Types.ObjectId[];
 }
 const UserSchema = new Schema<IUser>(
