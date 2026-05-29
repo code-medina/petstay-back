@@ -1,11 +1,14 @@
 import type { QueryFilter } from "mongoose";
 import type {
-  MongoIdSchemaType,
   CreateEstateDtoType,
   DeleteEstateDtoType,
   EditEstateDtoType,
   QueryParamFilterType,
 } from '../dtos/estate.dto.js';
+
+
+import type { MongoIdSchemaType } from "../dtos/common.dto.js"
+
 import { AppError } from '../errors/app.error.js';
 import { Estate, type IEstate } from '../models/estate.model.js';
 import { logger } from '../lib/logger.js';

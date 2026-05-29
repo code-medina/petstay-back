@@ -2,7 +2,7 @@ import type { NextFunction, Response, Request } from "express";
 import type { UserService } from "../services/user.service.js";
 import { AppError } from "../errors/app.error.js";
 import { logger } from "../lib/logger.js";
-import { ObjectIdSchema } from "../dtos/estate.dto.js";
+import { ObjectIdSchema } from "../dtos/common.dto.js";
 import { getZodError } from "../lib/zod.js";
 
 export class UserController {

@@ -1,4 +1,5 @@
-import type { MongoIdSchemaType } from "../dtos/estate.dto.js";
+
+import type { MongoIdSchemaType } from "../dtos/common.dto.js"
 import type { IEstate } from "../models/estate.model.js"
 import { User, type IUser } from "../models/user.model.js"
 
