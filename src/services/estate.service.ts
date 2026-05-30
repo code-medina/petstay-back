@@ -2,8 +2,8 @@ import type {
   CreateEstateDtoType,
   DeleteEstateDtoType,
   EditEstateDtoType,
-  MongoIdSchemaType,
 } from '../dtos/estate.dto.js';
+import type { MongoIdSchemaType } from "../dtos/common.dto.js"
 import { AppError } from '../errors/app.error.js';
 import { logger } from '../lib/logger.js';
 import type { IEstateRepository } from '../repositories/estate.repository.js';

@@ -1,5 +1,6 @@
 import * as z from 'zod';
-import mongoose from 'mongoose';
+import { MongoIdSchema, PaginationSchema } from './common.dto.js';
+
 
 
 
@@ -15,15 +16,6 @@ const textField = (field: string) =>
     .min(3, `The ${field} must be at least 3 characters long.`)
     .max(30, `The ${field} must be a maximum of 30 characters`);
 
-export const MongoIdSchema = z.string().refine(mongoose.isValidObjectId, {
-  message: 'Invalid MongoDB ID',
-});
-export type MongoIdSchemaType = z.infer<typeof MongoIdSchema>;
-
-// to use with res.body and res.query
-export const ObjectIdSchema = z.object({
-  _id: MongoIdSchema
-})
 
 /* ------------------------------------------------ */
 /* Nested Schemas */
@@ -62,9 +54,7 @@ export const MaxPrice = z
   .transform((val) => Number(val))
   .pipe(z.number().positive('The maximum price must be positive.'));
 
-export const QueryParamFilter = z.object({
-  page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(10),
+export const QueryParamFilter = PaginationSchema.extend({
   address: textField('address property').optional(),
 
   minPrice: z.coerce

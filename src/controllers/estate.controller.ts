@@ -1,12 +1,12 @@
 import type { NextFunction, Request, Response } from 'express';
 import type { EstateService } from '../services/estate.service.js';
 import {
-  MongoIdSchema,
   CreateEstateDto,
   DeleteEstateDto,
   EditEstateDto,
   QueryParamFilter,
 } from '../dtos/estate.dto.js';
+import{MongoIdSchema} from "../dtos/common.dto.js"
 import { AppError } from '../errors/app.error.js';
 import { logger } from '../lib/logger.js';
 import { getZodError } from '../lib/zod.js';
