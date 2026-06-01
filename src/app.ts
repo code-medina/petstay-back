@@ -5,15 +5,22 @@ import cookieParser from 'cookie-parser';
 //custom modules
 import { logger } from './lib/logger.js';
 
+//env 
+import { env } from "./config/env.schema.js";
 //routes
 import { authRouter } from './routes/auth.routes.js';
 import { estateRouter } from './routes/estate.routes.js';
 import { userRouter } from './routes/user.routes.js';
 
-const port = Number(process.env.PORT_API || 8888);
+// const port = Number(process.env.PORT_API || 8888);
+const port = env.PORT_API;
+
 //cors
-const isProduction = process.env.NODE_ENV === 'production';
-const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || [];
+// const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = env.NODE_ENV === 'production';
+
+// const allowedOrigins = process.env.CORS_ORIGINS?.split(',') || [];
+const allowedOrigins = env.CORS_ORIGINS;
 const corsOptions: cors.CorsOptions = {
   origin: isProduction
     ? allowedOrigins
@@ -32,7 +39,9 @@ const app: Application = express();
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser(process.env.KEY_COOKIE!));
+// app.use(cookieParser(process.env.KEY_COOKIE!));
+app.use(cookieParser(env.KEY_COOKIE));
+
 //route
 app.get('/', (req, res) => {
   res.json({

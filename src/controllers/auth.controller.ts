@@ -1,16 +1,23 @@
+//env
+import{env} from "../config/env.schema.js"
+//module
 import ms from 'ms';
 import type { Request, Response, NextFunction, CookieOptions } from 'express';
+//custom
 import { logger } from '../lib/logger.js';
+//service
 import type { AuthService } from '../services/auth.service.js';
+//dtos
 import {
   LoginUserDto,
   ParamRoleDto,
   RegisterUserDto,
   type ParamRoleDtoType,
 } from '../dtos/user.dto.js';
+//util
 import { AppError } from '../errors/app.error.js';
 import { getZodError } from '../lib/zod.js';
-
+//jwt
 import { verifyRefresh } from '../lib/jwt.js';
 import type { JwtPayload } from 'jsonwebtoken';
 
@@ -33,8 +40,8 @@ export class AuthController {
   private getCookieOptions = (type: 'access' | 'refresh'): CookieOptions => {
     const accessExpires =
       type === 'access'
-        ? process.env.JWT_ACCESS_EXPIRES
-        : process.env.JWT_REFRESH_EXPIRES;
+        ? env.JWT_ACCESS_EXPIRES
+        : env.JWT_REFRESH_EXPIRES;
     if (!accessExpires) {
       throw new AppError(
         `JWT_${type.toUpperCase()}_EXPIRES is not defined`,
@@ -44,7 +51,7 @@ export class AuthController {
 
     const cookieOption: CookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', //true for HTTPS,
+      secure: env.NODE_ENV === 'production', //true for HTTPS,
       maxAge: ms(accessExpires as ms.StringValue),
       signed: true,
       sameSite: 'lax',
@@ -88,12 +95,6 @@ export class AuthController {
       const { user, accessToken, refreshToken } = await this.service.loginUser(
         dto.data,
       );
-
-      /*     const cookieOptionAccess = this.getCookieOptions('access');
-      const cookieOptionRefresh = this.getCookieOptions('refresh'); // save in db
-      res.cookie('access_token', accessToken, cookieOptionAccess);
-      res.cookie('refresh_token', refreshToken, cookieOptionRefresh);
- */
 
       //todo  set cookie
       this.addCookiesToResponse(res, accessToken, refreshToken);

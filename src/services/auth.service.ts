@@ -1,9 +1,16 @@
+
+//env
+import {env} from "../config/env.schema.js"
+//module
 import ms from 'ms';
+import mongoose from 'mongoose';
+//dtos
 import {
   LoginResponseUserDto,
   type CreateUserDtoType,
   type LoginUserDtoTYpe,
 } from '../dtos/user.dto.js';
+//custom mudule
 import {
   checkPassword,
   checkRefresh,
@@ -12,12 +19,12 @@ import {
 } from '../lib/hash.js';
 import { generateRefreshToken, generateToken, getPayload } from '../lib/jwt.js';
 import { logger } from '../lib/logger.js';
+//db model
 import type { ISession } from '../models/session.model.js';
 import { Session } from '../models/session.model.js';
-
 import type { IAuthRepository } from '../repositories/auth.repository.js';
+//error global
 import { AppError } from '../errors/app.error.js';
-import mongoose from 'mongoose';
 
 // to generateSession
 type SessionWithoutId = Omit<ISession, '_id'>;
@@ -62,7 +69,7 @@ export class AuthService {
       userId: objectId,
       jti,
       expiresAt: new Date(
-        Date.now() + ms(process.env.JWT_REFRESH_EXPIRES as ms.StringValue),
+        Date.now() + ms(env.JWT_REFRESH_EXPIRES as ms.StringValue),
       ),
       refreshHash: hash,
     };
