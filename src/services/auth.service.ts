@@ -1,6 +1,6 @@
 
 //env
-import {env} from "../config/env.schema.js"
+import { env } from "../config/env.schema.js"
 //module
 import ms from 'ms';
 import mongoose from 'mongoose';
@@ -36,13 +36,13 @@ export class AuthService {
   }
   registerUser = async (user: CreateUserDtoType) => {
     const { password, ...rest } = user;
-    const existUser = await this.repo.findByEmail(rest.email);
-    if (existUser) throw new AppError('User already registered', 400);
     try {
+      const existUser = await this.repo.findByEmail(rest.email);
+      if (existUser) throw new AppError('User already registered', 400);
       const hashPassword = await toHashPassword(password);
       const data = { ...rest, password: hashPassword };
 
-      return this.repo.save(data);
+      return await this.repo.save(data);
     } catch (error) {
       logger.error(error);
       if (error instanceof AppError) throw error;
@@ -64,19 +64,26 @@ export class AuthService {
 
     //session with hash  in db
     const hash = await toHashRefresh(refresh);
-    const objectId = new mongoose.Types.ObjectId(userId);
-    const session: SessionWithoutId = {
-      userId: objectId,
-      jti,
-      expiresAt: new Date(
-        Date.now() + ms(env.JWT_REFRESH_EXPIRES as ms.StringValue),
-      ),
-      refreshHash: hash,
-    };
-    return { access, refresh, session };
+    try {
+      const objectId = new mongoose.Types.ObjectId(userId);
+
+      const session: SessionWithoutId = {
+        userId: objectId,
+        jti,
+        expiresAt: new Date(
+          Date.now() + ms(env.JWT_REFRESH_EXPIRES as ms.StringValue),
+        ),
+        refreshHash: hash,
+      };
+      return { access, refresh, session };
+    } catch (err) {
+      logger.error(err)
+      throw new AppError("Error generating session with ID")
+
+    }
   };
   //save session in db
-  private saveSession = async (session: SessionWithoutId) => {
+  saveSession = async (session: SessionWithoutId) => {
     return Session.create(session);
   };
 
@@ -92,15 +99,16 @@ export class AuthService {
     if (!isValid) {
       throw new AppError('Unauthorized', 401);
     }
-
-    const { access, refresh, session } = await this.generateSession(
-      userRegister._id.toString(),
-    );
-
+    let dataSession;
     try {
-      await this.saveSession(session);
+
+      dataSession = await this.generateSession(
+        userRegister._id.toString(),
+      );
+      await this.saveSession(dataSession.session);
     } catch (error) {
       logger.error(error);
+      if (error instanceof AppError) throw error;
 
       throw new AppError('Failed to save session', 500);
     }
@@ -118,8 +126,8 @@ export class AuthService {
 
     return {
       user: dto.data,
-      refreshToken: refresh,
-      accessToken: access,
+      refreshToken: dataSession.refresh,
+      accessToken: dataSession.access,
     };
   };
 

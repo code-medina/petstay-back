@@ -1,0 +1,9 @@
+process.env.PORT_API = "3000";
+process.env.CORS_ORIGINS = "*";
+process.env.KEY_COOKIE = "test";
+process.env.URL_DB = "mongodb://localhost:27017/test";
+process.env.SECRET_ACCESS_TOKEN = "secret";
+process.env.SECRET_REFRESH_TOKEN = "secret";
+process.env.JWT_ACCESS_EXPIRES = "15m";
+process.env.JWT_REFRESH_EXPIRES = "7d";
+process.env.LOG_LEVEL = "debug";
