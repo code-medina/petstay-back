@@ -5,6 +5,8 @@ import type { CreateUserDtoType } from "../dtos/user.dto.js";
 
 
 import { checkPassword, toHashPassword } from "../lib/hash.js";
+import type { SessionService } from "../services/session.service.js";
+import { AppError } from "../errors/app.error.js";
 
 vi.mock("../lib/hash.js", async (importOrginal) => {
     const actual = await importOrginal();
@@ -15,6 +17,7 @@ vi.mock("../lib/hash.js", async (importOrginal) => {
     }
 });
 
+
 describe("[class AuthService] ", () => {
 
     test("[method registerUser] should throw if the user already exists", async () => {
@@ -24,8 +27,8 @@ describe("[class AuthService] ", () => {
         const repo: Partial<IAuthRepository> = {
             findByEmail: findByEmailMock,
         };
-
-        const service = new AuthService(repo as IAuthRepository);
+        const serviceSession: Partial<SessionService> = {};
+        const service = new AuthService(repo as IAuthRepository, serviceSession as SessionService);
         await expect(service.registerUser(user as CreateUserDtoType)).rejects.toThrow("User already registered");
         expect(findByEmailMock).toHaveBeenCalledOnce();
         expect(findByEmailMock).toHaveBeenCalledWith(user.email);
@@ -41,7 +44,9 @@ describe("[class AuthService] ", () => {
             save: saveMock,
             findByEmail: findByEmailMock,
         };
-        const service = new AuthService(repo as IAuthRepository);
+        const serviceSession: Partial<SessionService> = {};
+        const service = new AuthService(repo as IAuthRepository, serviceSession as SessionService);
+
         await expect(service.registerUser(user)).rejects.toThrow("Error Register user");
         expect(repo.save).toHaveBeenCalledOnce();
 
@@ -56,7 +61,8 @@ describe("[class AuthService] ", () => {
             findByEmail: findByEmailMock,
             save: saveMock,
         };
-        const service = new AuthService(repo as IAuthRepository);
+        const serviceSession: Partial<SessionService> = {};
+        const service = new AuthService(repo as IAuthRepository, serviceSession as SessionService);
         await expect(service.registerUser(user as CreateUserDtoType)).resolves.toMatchObject({ ...user, _id: "1" });
         expect(findByEmailMock).toHaveBeenCalledWith(user.email);
         expect(saveMock).toHaveBeenCalledOnce();
@@ -80,8 +86,8 @@ describe("[class AuthService] ", () => {
             findByEmail: findByEmailMock,
             save: saveMock,
         };
-
-        const service = new AuthService(repo as IAuthRepository);
+        const serviceSession: Partial<SessionService> = {};
+        const service = new AuthService(repo as IAuthRepository, serviceSession as SessionService);
 
         await service.registerUser(user);
 
@@ -93,6 +99,8 @@ describe("[class AuthService] ", () => {
         expect(savedUser.password).not.toBe(user.password);
         expect(savedUser.password).toBe("hash1");
     });
+
+    //login
     test("[method loginUser] should throw if user not exists", async () => {
 
         const user = { email: "mock@gnaail.com", password: "123456" }
@@ -101,7 +109,12 @@ describe("[class AuthService] ", () => {
             findByEmail: findByEmailMock
 
         };
-        const service = new AuthService(repo as IAuthRepository);
+        const saveSessionMock = vi.fn().mockResolvedValue({ access: "access", refresh: "refresh" })
+        const serviceSession: Partial<SessionService> = {
+            saveSession: saveSessionMock,
+        };
+        const service = new AuthService(repo as IAuthRepository, serviceSession as SessionService);
+
         await expect(service.loginUser(user)).rejects.toThrow("User not found");
         expect(repo.findByEmail).toHaveBeenCalledOnce();
         expect(repo.findByEmail).toHaveBeenCalledWith(user.email)
@@ -114,7 +127,14 @@ describe("[class AuthService] ", () => {
         const repo: Partial<IAuthRepository> = {
             findByEmail: findByEmailMock,
         }
-        const service = new AuthService(repo as IAuthRepository);
+
+        const saveSessionMock = vi.fn().mockResolvedValue({ access: "access", refresh: "refresh" })
+
+        const serviceSession: Partial<SessionService> = {
+            saveSession: saveSessionMock,
+        };
+        const service = new AuthService(repo as IAuthRepository, serviceSession as SessionService);
+
         await expect(service.loginUser({ email: user.email, password: user.password })).rejects.toThrow("Unauthorized");
         expect(repo.findByEmail).toHaveBeenCalledOnce();
         expect(vi.mocked(checkPassword)).toHaveBeenCalledOnce();
@@ -128,9 +148,18 @@ describe("[class AuthService] ", () => {
         const repo: Partial<IAuthRepository> = {
             findByEmail: findByEmailMock,
         };
-        const service = new AuthService(repo as IAuthRepository);
-        vi.spyOn(service, "saveSession").mockRejectedValue(new Error("error save session"));
-        await expect(service.loginUser(user)).rejects.toThrow("Failed to save session");
+
+        const saveSessionMock = vi.fn().mockRejectedValue(new AppError("Error saving session of user"))
+
+        const serviceSession: Partial<SessionService> = {
+            saveSession: saveSessionMock,
+        };
+
+        const service = new AuthService(repo as IAuthRepository, serviceSession as SessionService);
+
+        //vi.spyOn(service, "saveSession").mockRejectedValue(new Error("error save session"));
+        await expect(service.loginUser(user)).rejects.toThrow("Error saving session");
+
 
 
     })
@@ -142,7 +171,14 @@ describe("[class AuthService] ", () => {
         const repo: Partial<IAuthRepository> = {
             findByEmail: findByEmailMock,
         };
-        const service = new AuthService(repo as IAuthRepository);
+        const saveSessionMock = vi.fn().mockRejectedValue(new AppError("Error generating session with ID"))
+
+        const serviceSession: Partial<SessionService> = {
+            saveSession: saveSessionMock,
+        };
+
+        const service = new AuthService(repo as IAuthRepository, serviceSession as SessionService);
+
 
         await expect(service.loginUser(user)).rejects.toThrow("Error generating session with ID");
 
@@ -155,10 +191,17 @@ describe("[class AuthService] ", () => {
         const repo: Partial<IAuthRepository> = {
             findByEmail: findByEmailMock,
         };
-        const service = new AuthService(repo as IAuthRepository);
+        const saveSessionMock = vi.fn().mockResolvedValue({access:"access",refresh:"refresh"});
+
+        const serviceSession: Partial<SessionService> = {
+            saveSession: saveSessionMock,
+        };
+
+        const service = new AuthService(repo as IAuthRepository, serviceSession as SessionService);
+
         // @ts-expect-error saveSession return a Doc db or throw error
-        vi.spyOn(service, "saveSession").mockResolvedValue(null);
-        const expected = await service.loginUser({ ...user, password: "123456" });
+        //vi.spyOn(service, "saveSession").mockResolvedValue(null);
+        const expected = await service.loginUser({user});
         expect(expected).toHaveProperty('user');
         expect(expected).toHaveProperty('refreshToken');
         expect(expected).toHaveProperty('accessToken');
@@ -166,7 +209,7 @@ describe("[class AuthService] ", () => {
 
 
     });
-  
+
 
 
 })
