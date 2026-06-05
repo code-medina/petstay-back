@@ -18,6 +18,7 @@ export const generateToken = (userId: string) => {
   return jwt.sign({ sub: userId, jti }, secretAccessToken, options);
 };
 export const generateRefreshToken = (userId: string) => {
+
   const options: jwt.SignOptions = { expiresIn: expiresInRefreshToken };
   const jti = crypto.randomUUID();
   return { refresh: jwt.sign({ sub: userId, jti }, secretRefreshToken, options), jti };
@@ -28,7 +29,6 @@ export const verifyRefresh = (refresh: string) => {
 }
 
 export const verifyToken = (token: string) => {
-
   return jwt.verify(token, secretAccessToken) as JwtPayload;
 }
 
