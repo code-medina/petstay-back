@@ -13,19 +13,19 @@ export class SessionService {
     constructor(repository: ISessionRepository) {
         this.repo = repository;
     }
-    removeSession = async (userId: string, jti: string, refreshToken: string) => {
+    closeSession = async (userId: string, jti: string) => {
         try {
             const sessionRemoved = await this.repo.removeSession(userId, jti);
-            if (!sessionRemoved) throw new AppError("Refresh token not found", 404);
-            const isValid = await checkRefresh(refreshToken, sessionRemoved.refreshHash);
-            if (!isValid) throw new AppError('Unauthorized', 400);
-
             return sessionRemoved;
-
-        } catch (error) {
-
-            if (error instanceof AppError) throw error;
+        } catch (err) {
+            logger.info({ msg: "error close session", err });
+            return null;
         }
+    }
+    checkRefreshWithSession = async (refresh: string, sessionRemoved: ISession) => {
+
+        return await checkRefresh(refresh, sessionRemoved.refreshHash);
+
     }
     generateSession = async (userId: string) => {
         const access = generateToken(userId);

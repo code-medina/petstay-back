@@ -63,7 +63,7 @@ export class AuthService {
     if (!isValid) {
       throw new AppError('Unauthorized', 401);
     }
- 
+
 
     try {
       const { access, refresh } = await this.serviceSession.saveSession(userRegister._id.toString());
@@ -94,9 +94,11 @@ export class AuthService {
   logoutUser = async (refresh: string) => {
     try {
       const decode = getPayload(refresh);
-      if (decode.jti) {
-        return Session.deleteOne({ jti: decode.jti });
+      if (decode.jti && decode.userId) {
+        return await this.serviceSession.closeSession(decode.userId, decode.jti);
+
       }
+      return null;
     } catch (error) {
       logger.info('Error in delete session in db');
       logger.info(error);
@@ -105,9 +107,13 @@ export class AuthService {
   refreshToken = async (userId: string, jti: string, refreshToken: string) => {
     try {
 
-
-      const sessionRemoved = await this.serviceSession.removeSession(userId, jti, refreshToken);
+      const sessionRemoved = await this.serviceSession.closeSession(userId, jti);
+      if (!sessionRemoved) throw new AppError("Session not found", 400);
       logger.info({ message: "session removed", sessionRemoved });
+
+      const isValid = await this.serviceSession.checkRefreshWithSession(refreshToken, sessionRemoved);
+      if (!isValid) throw new AppError("unauthorized. Refresh invalid", 401);
+
       const { refresh, access } = await this.serviceSession.saveSession(userId);
 
       return { refresh, access };
