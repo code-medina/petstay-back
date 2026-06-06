@@ -12,11 +12,8 @@ import {
   toHashPassword,
 
 } from '../lib/hash.js';
-//import { generateRefreshToken, generateToken, getPayload } from '../lib/jwt.js';
 import { logger } from '../lib/logger.js';
-//db model
-//import type { ISession } from '../models/session.model.js';
-import { Session } from '../models/session.model.js';
+
 import type { IAuthRepository } from '../repositories/auth.repository.js';
 //error global
 import { AppError } from '../errors/app.error.js';
@@ -98,11 +95,11 @@ export class AuthService {
         return await this.serviceSession.closeSession(decode.userId, decode.jti);
 
       }
-      return null;
     } catch (error) {
       logger.info('Error in delete session in db');
       logger.info(error);
     }
+    return null;
   };
   refreshToken = async (userId: string, jti: string, refreshToken: string) => {
     try {

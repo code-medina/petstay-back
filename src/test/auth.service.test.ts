@@ -7,15 +7,21 @@ import type { CreateUserDtoType } from "../dtos/user.dto.js";
 import { checkPassword, toHashPassword } from "../lib/hash.js";
 import type { SessionService } from "../services/session.service.js";
 import { AppError } from "../errors/app.error.js";
+import { getPayload } from "../lib/jwt.js";
 
 vi.mock("../lib/hash.js", async (importOrginal) => {
     const actual = await importOrginal();
     return {
-        ...actual,
+        ...(actual ?? {}),
         toHashPassword: vi.fn(),
         checkPassword: vi.fn()
     }
 });
+vi.mock("../lib/jwt.js", () => ({
+    getPayload: vi.fn()
+})
+)
+
 
 
 describe("[class AuthService] ", () => {
@@ -191,7 +197,7 @@ describe("[class AuthService] ", () => {
         const repo: Partial<IAuthRepository> = {
             findByEmail: findByEmailMock,
         };
-        const saveSessionMock = vi.fn().mockResolvedValue({access:"access",refresh:"refresh"});
+        const saveSessionMock = vi.fn().mockResolvedValue({ access: "access", refresh: "refresh" });
 
         const serviceSession: Partial<SessionService> = {
             saveSession: saveSessionMock,
@@ -201,7 +207,7 @@ describe("[class AuthService] ", () => {
 
         // @ts-expect-error saveSession return a Doc db or throw error
         //vi.spyOn(service, "saveSession").mockResolvedValue(null);
-        const expected = await service.loginUser({user});
+        const expected = await service.loginUser({ user });
         expect(expected).toHaveProperty('user');
         expect(expected).toHaveProperty('refreshToken');
         expect(expected).toHaveProperty('accessToken');
@@ -209,6 +215,35 @@ describe("[class AuthService] ", () => {
 
 
     });
+
+    test("[method logoutUser] should return null If refresh is invalid ", async () => {
+        const serviceSession: Partial<SessionService> = {};
+        const repo: Partial<IAuthRepository> = {};
+        const service = new AuthService(repo as IAuthRepository, serviceSession as SessionService);
+        await expect(service.logoutUser("refresh")).resolves.toBeNull();
+    });
+
+    test("[method logoutUser] should return session removed ", async () => {
+
+        vi.mocked(getPayload).mockReturnValue({ jti: "jti", userId: "userid" });
+
+        const mockSession = {
+            _id: "665ebef4d3c90a1b2c3d4e5f",
+            userId: "665ebef4d3c90a1b2c3d4e5f",
+            jti: "jit-mock",
+            expiresAt: new Date(),
+            refreshHash: "mockHashRfrsh"
+        };
+        const closeSessionMock = vi.fn().mockResolvedValue(mockSession)
+        const serviceSession: Partial<SessionService> = {
+            closeSession: closeSessionMock,
+        };
+        const repo: Partial<IAuthRepository> = {};
+        const service = new AuthService(repo as IAuthRepository, serviceSession as SessionService);
+
+        await expect(service.logoutUser("refresh")).resolves.toMatchObject(mockSession);
+    });
+
 
 
 
