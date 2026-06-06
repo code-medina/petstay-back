@@ -245,6 +245,57 @@ describe("[class AuthService] ", () => {
     });
 
 
+    test("[method refreshToken] should return throw Session not found ", async () => {
+       
+        const closeSessionMock = vi.fn().mockResolvedValue(null);
+        const sessionService: Partial<SessionService> = {
+            closeSession: closeSessionMock,
+        }
+        const repo: Partial<IAuthRepository> = {};
+        const service = new AuthService(repo as IAuthRepository, sessionService as SessionService);
+        await expect(service.refreshToken("userId", "jti", "refresh")).rejects.toThrow("Session not found");
 
+    });
 
+    test("[method refreshToken] should return throw unauthorized", async () => {
+        const mockSession = {
+            _id: "665ebef4d3c90a1b2c3d4e5f",
+            userId: "665ebef4d3c90a1b2c3d4e5f",
+            jti: "jit-mock",
+            expiresAt: new Date(),
+            refreshHash: "mockHashRfrsh"
+        };
+        const closeSessionMock = vi.fn().mockResolvedValue(mockSession);
+        const checkRefreshWithSessionMock = vi.fn().mockResolvedValue(false);
+        const sessionService: Partial<SessionService> = {
+            closeSession: closeSessionMock,
+            checkRefreshWithSession: checkRefreshWithSessionMock,
+        }
+        const repo: Partial<IAuthRepository> = {};
+        const service = new AuthService(repo as IAuthRepository, sessionService as SessionService);
+        await expect(service.refreshToken("userId", "jti", "refresh")).rejects.toThrow("unauthorized. Refresh invalid");
+
+    });
+
+    test("[method refreshToken] should return throw {refresh ,access}", async () => {
+        const mockSession = {
+            _id: "665ebef4d3c90a1b2c3d4e5f",
+            userId: "665ebef4d3c90a1b2c3d4e5f",
+            jti: "jit-mock",
+            expiresAt: new Date(),
+            refreshHash: "mockHashRfrsh"
+        };
+        const closeSessionMock = vi.fn().mockResolvedValue(mockSession);
+        const checkRefreshWithSessionMock = vi.fn().mockResolvedValue(true);
+        const saveSessionMock = vi.fn().mockResolvedValue({ refresh: "refresh", access: "access" })
+        const sessionService: Partial<SessionService> = {
+            closeSession: closeSessionMock,
+            checkRefreshWithSession: checkRefreshWithSessionMock,
+            saveSession: saveSessionMock,
+        }
+        const repo: Partial<IAuthRepository> = {};
+        const service = new AuthService(repo as IAuthRepository, sessionService as SessionService);
+        await expect(service.refreshToken("userId", "jti", "refresh")).resolves.toMatchObject({ refresh: "refresh", access: "access" });
+
+    })
 })
